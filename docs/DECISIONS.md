@@ -197,6 +197,7 @@
 | D94 | 项目改名 Recto（原名“留白／Liubai”，D5）：程序 `recto-shell`、`recto-theme`，数据在 `~/.local/share/recto`，备份后缀 `.recto-backup-`，应用 ID `org.recto.Shell`。测试机目录 `~/VMs/liubai-arch` 和 test 的副本 `/home/shared/liubai` 保留原名；测量报告是历史记录，不改 | 作者同意换名，不用拼音、由助手定。Recto 是书页的正面，翻开书最先看到的那一页，和“纸、书页”的方向一致，是西方书籍的术语（D91）；短，查过没有同名的 Linux 桌面或外壳。测试机的覆盖盘记着基础镜像的绝对路径，改目录名会断链 |
 | D95 | 默认壁纸是 Hammershøi《Interior in Strandgade, Sunlight on the Floor》（1901），painting，放右边、宽 0.40；Chardin 的静物和 Corot 的池塘（铺满）也收进 `design/plates/` 作备选，三张共 3.5 MB | 作者要默认用一张画，由助手挑。Hammershøi 的灰白和纸色同调，Paper 和 Ink 下都安静，右边的空位留给窗口；另外两张是候选页里效果最好的，换图只改令牌里的一行 |
 | D96 | 作者在自己的账户里用 Recto，由作者自己运行 `./install.sh` 切换、`--uninstall` 换回；助手不改作者的配置，也不在作者账户里运行安装。第一次从别的桌面切过来时（niri 配置还不是 Recto 的链接），安装最后不再提供“立即重载”，只提示注销重新登录；已经在用 Recto 时，才提供重载 | 作者要求“不要直接改我的配置，写进脚本，我想换的时候自己换”。从别的桌面切过来时，原来的状态栏、壁纸还在同一个会话里跑，立即启动 Recto 的外壳会和它们叠在一起；重新登录最干净。测试机里演练过：默认 niri → 安装 → 重新登录 → 换 Ink → `--uninstall` → 原配置和 GNOME 设置恢复 |
+| D97 | 代码托管在 GitHub 的私有仓库 `Cho155/recto`；提交邮箱用 GitHub 隐私邮箱 `269170125+Cho155@users.noreply.github.com`，第一次推送前把已有 24 个提交的作者和提交者邮箱都改了过来（代码和时间不变） | 作者要求：先私有，邮箱不公开。改写历史只能在推送前做；test 的副本历史随之变了，`start` 在副本干净时直接对齐到新历史 |
 
 ## 待定
 
