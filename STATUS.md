@@ -48,7 +48,7 @@
 
 - **第一版还差**：完整的一轮真机验证（第一轮因为启动顺序没测成，见上）、英文 README（还没写）。
 - 作者账户里还没装 Recto：作者要自己运行 `./install.sh` 切换（README 有“换成 Recto，或换回原来的桌面”一节）。这台机器上需要的包都已装好。
-- 样张画布（artifact）和两个清单页的标题、文字里还是旧名“留白／Liubai”，源文件 `design/specimen/project/` 已改名，画布没有重新发布。
+- 样张画布（artifact）和真机清单页的标题、文字里还是旧名“留白／Liubai”（图版候选页已改名），源文件 `design/specimen/project/` 已改名，画布没有重新发布。
 - test 账户里装的还是旧名 Liubai（`~/.local/share/liubai`）；下次在 test 里运行 `start` 会装上 Recto，旧的配置链接会被当成“已有配置”改名备份，旧文件夹留着不碍事。
 - 安装脚本只在测试机里测过“已经装好依赖”的情况；在一台全新的系统上从零安装，要等真机测试（或者开一台新的测试机，需要下载几百 MB 的包，要先问作者）。
 - 整页今日页刚出现时，全屏表面有几帧热身，在测试机里会晚几帧（D87）。
@@ -98,7 +98,7 @@
 1. **作者**：想用的时候自己切换：`cd ~/Projects/recto && ./install.sh`，然后注销重新登录；换回原来：`./install.sh --uninstall`，再重新登录。用一段时间，告诉助手哪里质感不够。
 2. **助手**：按作者的使用反馈调整（先在测试机里复现和改，作者重新运行 `./install.sh` 就会更新）。
 3. 要讨论：默认主题用 Auto 还是 Paper；纸色在真机上的亮度（作者第一轮觉得刺眼，当时没有壁纸）；终端字体（候选 Libertinus Mono、Courier Prime）。
-4. **助手**：写英文 README（截图用 Recto 和默认壁纸）；把样张画布和清单页改成新名重新发布。
+4. **助手**：写英文 README（截图用 Recto 和默认壁纸）；把样张画布和真机清单页改成新名重新发布。
 5. 完整的一轮真机验证（作者自己的账户里用起来以后，`tools/collect-report` 可以直接在会话里跑），用两组帧率决定 D50（cairo 还是 gl）。
 6. 想换壁纸时：另外两张在 `design/plates/`，其余候选在 `design/plates/candidates/` 和[图版候选页](https://claude.ai/artifact/APXEjbY2mGLDFANaxJAj4m)。
 
