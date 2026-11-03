@@ -13,6 +13,11 @@
 - 测试机：`~/VMs/liubai-arch/`（Arch 官方 basic 镜像 + 覆盖盘 `liubai.qcow2`；`start.sh` 启动，`vm` 执行命令，SSH 端口 2223，专用密钥在同目录）。删除覆盖盘即可重置。
 - 测试机里可用 ydotool 模拟点击（`ydotoold` 以 root 运行，套接字 `/tmp/.ydotool_socket`）；测试机的 `~/.config/niri/local.kdl` 关掉了指针加速和热角，只为测试。
 - 不使用、不修改 `~/VMs/debian/`（作者的 Debian 虚拟机），也不连接 `~/.ssh/config` 里的远程主机。
+- **真机测试**（作者 2026-11-03 确认）：在本机新建的 `test` 账户里进行，由作者操作；作者自己的账户仍然不做任何测试、不运行留白。
+  - 项目副本：`/home/shared/liubai`（归 test 所有，从作者账户可读）。共享文件夹 `/home/shared` 两个账户都可写。
+  - test 没有 sudo（作者的 wheel 组是免密 sudo）；留白需要的软件包从作者账户安装，装之前先问作者。
+  - 助手可以从作者账户读取 `/home/shared/liubai/reports/real-hardware/` 里的结果。
+  - test 的登录信息不写进仓库、文档或记忆。
 - 可以在项目目录内编写文档、令牌、样张和源码。
 
 ## 设计约定
