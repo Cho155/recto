@@ -8,13 +8,15 @@ window.liubai-bar {
   background-color: {{ t.base }};
 }
 
+/* The bar is a running head: the serif in its small size, old-style figures. */
 .bar {
   min-height: {{ shape.bar_height }}px;
   padding: 0 {{ shape.bar_padding }}px;
   border-bottom: {{ shape.hairline }}px solid {{ t.line }};
   color: {{ t.text }};
-  font-family: "{{ font.sans }}";
-  font-size: 13px;
+  font-family: "{{ font.serif_small }}", "{{ font.serif }}";
+  font-size: 14px;
+  font-feature-settings: "onum";
 }
 
 .bar button {
@@ -155,6 +157,7 @@ window.liubai-today {
 .notice-sep,
 .notice-quiet {
   color: {{ t.muted }};
+  font-style: italic;
 }
 
 .divider {
@@ -164,10 +167,11 @@ window.liubai-today {
   background-color: {{ t.line }};
 }
 
+/* "Focus until 16:00": words in italic, not a pill. */
 .bar button.focus-pill {
   min-height: 24px;
-  padding: 0 8px;
-  background-color: {{ t.raised }};
+  padding: 0 6px;
+  font-style: italic;
 }
 
 .bar button.unread {

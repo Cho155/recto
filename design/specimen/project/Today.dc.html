@@ -2,100 +2,127 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Today</title>
+<title>Today · A whole page</title>
 <script src="./support.js"></script>
 </head>
 <body>
 <x-dc>
 <helmet>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&amp;family=Inter:wght@400;500;600&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&amp;display=swap">
 <style>
 body{margin:0}
 </style>
 </helmet>
-<div style="width: 880px; height: 720px; box-sizing: border-box; padding: 52px 64px; background: #FAF9F5; font-family: Inter, sans-serif; color: #141413; display: flex; flex-direction: column; gap: 32px;">
+<div style="position: relative; width: 1440px; height: 900px; overflow: hidden; background: #FAF9F5; font-family: 'Source Serif 4', serif; color: #141413; font-variant-numeric: oldstyle-nums;">
+
+<div style="position: absolute; left: 0; top: 0; width: 1440px; height: 32px; box-sizing: border-box; padding: 0 16px; display: flex; align-items: center; gap: 16px; background: #FAF9F5; border-bottom: 1px solid #E3E0D6; font-size: 14px;">
+<button aria-label="Workspace 1 of 3. Open the overview" style="display: flex; align-items: center; gap: 10px; height: 28px; padding: 0 6px; margin-left: -6px; border: 0; border-radius: 2px; background: transparent; color: #141413; font-family: inherit; font-size: 15px; font-variant-caps: all-small-caps; letter-spacing: 0.08em; cursor: pointer;">
+<span style="display: flex; flex-direction: column; gap: 3px;">
+<span style="width: 4px; height: 4px; border-radius: 2px; background: #D97757;"></span>
+<span style="width: 4px; height: 4px; border-radius: 2px; background: #CFCABE;"></span>
+<span style="width: 4px; height: 4px; border-radius: 2px; background: #CFCABE;"></span>
+</span>
+<span>I</span>
+</button>
+<div aria-hidden="true" style="display: flex; align-items: center; gap: 4px;">
+<span style="width: 10px; height: 2px; border-radius: 1px; background: #CFCABE;"></span>
+<span style="width: 28px; height: 2px; border-radius: 1px; background: #8A8880;"></span>
+<span style="width: 18px; height: 2px; border-radius: 1px; background: #8A8880;"></span>
+</div>
+<div style="flex-grow: 1;"></div>
+<span aria-label="Input method: English" style="color: #6B6A65; font-variant-caps: all-small-caps; letter-spacing: 0.08em;">EN</span>
+<span style="color: #6B6A65; font-style: italic;">Monday, November 2</span>
+<span style="font-size: 15px; font-variant-numeric: oldstyle-nums tabular-nums;">14:30</span>
+</div>
+
+<div style="position: absolute; left: 280px; top: 150px; width: 880px; box-sizing: border-box; padding: 0 64px; display: flex; flex-direction: column; gap: 32px;">
 
 <div style="display: flex; align-items: flex-end; gap: 24px;">
 <div style="display: flex; flex-direction: column; gap: 6px; flex-grow: 1;">
-<div style="font-size: 14px; color: #6B6A65;">Monday · 2026</div>
-<h1 style="margin: 0; font-family: 'Source Serif 4', serif; font-size: 56px; font-weight: 400; line-height: 1.1; letter-spacing: -0.015em;">November 2</h1>
+<div style="font-size: 14px; color: #6B6A65; font-variant-caps: all-small-caps; letter-spacing: 0.12em;">Monday · 2026</div>
+<h1 style="margin: 0; font-size: 56px; font-weight: 400; line-height: 1.1; letter-spacing: -0.01em;">November 2</h1>
 </div>
-<div role="group" aria-label="Theme" style="display: flex; padding: 3px; border: 1px solid #E3E0D6; border-radius: 6px;">
-<button aria-pressed="true" style="height: 30px; padding: 0 14px; border: 0; border-radius: 4px; background: #F0EEE6; color: #141413; font-family: inherit; font-size: 13px; cursor: pointer;">Paper</button>
-<button aria-pressed="false" style="height: 30px; padding: 0 14px; border: 0; border-radius: 4px; background: transparent; color: #6B6A65; font-family: inherit; font-size: 13px; cursor: pointer;">Ink</button>
-<button aria-pressed="false" style="height: 30px; padding: 0 14px; border: 0; border-radius: 4px; background: transparent; color: #6B6A65; font-family: inherit; font-size: 13px; cursor: pointer;">Auto</button>
+<div role="group" aria-label="Theme" style="display: flex; align-items: center; gap: 2px; font-style: italic; font-size: 16px;">
+<button aria-pressed="true" style="height: 32px; padding: 0 6px; border: 0; background: transparent; color: #141413; font-family: inherit; font-size: inherit; font-style: inherit; text-decoration: underline; text-decoration-color: #D97757; text-underline-offset: 3px; cursor: pointer;">Paper</button>
+<span aria-hidden="true" style="color: #CFCABE;">·</span>
+<button aria-pressed="false" style="height: 32px; padding: 0 6px; border: 0; background: transparent; color: #6B6A65; font-family: inherit; font-size: inherit; font-style: inherit; cursor: pointer;">Ink</button>
+<span aria-hidden="true" style="color: #CFCABE;">·</span>
+<button aria-pressed="false" style="height: 32px; padding: 0 6px; border: 0; background: transparent; color: #6B6A65; font-family: inherit; font-size: inherit; font-style: inherit; cursor: pointer;">Auto</button>
 </div>
-<button style="height: 38px; padding: 0 16px; border: 1px solid #E3E0D6; border-radius: 6px; background: transparent; color: #141413; font-family: inherit; font-size: 13px; cursor: pointer;">Start focus</button>
+<button style="height: 32px; padding: 0 0 0 16px; border: 0; background: transparent; color: #141413; font-family: inherit; font-size: 16px; font-style: italic; text-decoration: underline; text-decoration-color: #CFCABE; text-underline-offset: 3px; cursor: pointer;">Start focus</button>
 </div>
 
 <div aria-hidden="true" style="height: 1px; background: #E3E0D6;"></div>
 
-<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 56px; flex-grow: 1;">
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 56px;">
 
 <div style="display: flex; flex-direction: column; gap: 36px;">
-<section style="display: flex; flex-direction: column; gap: 14px;">
-<h2 style="margin: 0; font-family: 'Source Serif 4', serif; font-size: 20px; font-weight: 500;">Schedule</h2>
-<div style="display: flex; align-items: baseline; gap: 16px; font-size: 14px; color: #6B6A65;">
-<span style="width: 44px; font-variant-numeric: tabular-nums;">10:00</span>
+<section style="display: flex; flex-direction: column; gap: 12px;">
+<h2 style="margin: 0 0 2px; font-size: 14px; font-weight: 400; color: #6B6A65; font-variant-caps: all-small-caps; letter-spacing: 0.12em;">Schedule</h2>
+<div style="display: flex; align-items: baseline; gap: 16px; font-size: 16px; color: #6B6A65;">
+<span style="width: 44px; font-variant-numeric: oldstyle-nums tabular-nums;">10:00</span>
 <span style="flex-grow: 1;">Stand-up</span>
-<span style="font-size: 12px;">Done</span>
+<span style="font-size: 14px; font-style: italic;">done</span>
 </div>
-<div style="display: flex; align-items: baseline; gap: 16px; font-size: 14px;">
-<span style="width: 44px; font-variant-numeric: tabular-nums; color: #6B6A65;">15:00</span>
-<span style="flex-grow: 1;">Design review <span style="color: #6B6A65;">· Room 3</span></span>
-<span style="font-size: 12px; color: #B4532E;">In 30 min</span>
+<div style="display: flex; align-items: baseline; gap: 16px; font-size: 16px;">
+<span style="width: 44px; font-variant-numeric: oldstyle-nums tabular-nums; color: #6B6A65;">15:00</span>
+<span style="flex-grow: 1;">Design review <span style="color: #6B6A65; font-style: italic;">· Room 3</span></span>
+<span style="font-size: 14px; font-style: italic; color: #B4532E;">in 30 minutes</span>
 </div>
-<div style="display: flex; align-items: baseline; gap: 16px; font-size: 14px;">
-<span style="width: 44px; font-variant-numeric: tabular-nums; color: #6B6A65;">19:30</span>
+<div style="display: flex; align-items: baseline; gap: 16px; font-size: 16px;">
+<span style="width: 44px; font-variant-numeric: oldstyle-nums tabular-nums; color: #6B6A65;">19:30</span>
 <span style="flex-grow: 1;">Reading</span>
 </div>
 </section>
 
-<section style="display: flex; flex-direction: column; gap: 14px;">
-<h2 style="margin: 0; font-family: 'Source Serif 4', serif; font-size: 20px; font-weight: 500;">Now playing</h2>
-<div style="display: flex; flex-direction: column; gap: 4px;">
-<div style="font-size: 15px;">Goldberg Variations · Aria</div>
-<div style="font-size: 13px; color: #6B6A65;">J. S. Bach</div>
-</div>
-<div aria-hidden="true" style="height: 2px; border-radius: 1px; background: #E3E0D6; display: flex;"><span style="width: 38%; border-radius: 1px; background: #141413;"></span></div>
-<div style="display: flex; align-items: center; gap: 4px; margin-left: -8px;">
-<button aria-label="Previous track" style="display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 6px; background: transparent; color: #141413; cursor: pointer;"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6l-8 6 8 6V6z"></path><path d="M6 6v12"></path></svg></button>
-<button aria-label="Pause" style="display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 6px; background: transparent; color: #141413; cursor: pointer;"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 6v12M15 6v12"></path></svg></button>
-<button aria-label="Next track" style="display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 6px; background: transparent; color: #141413; cursor: pointer;"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l8 6-8 6V6z"></path><path d="M18 6v12"></path></svg></button>
-</div>
+<section style="display: flex; flex-direction: column; gap: 12px;">
+<h2 style="margin: 0 0 2px; font-size: 14px; font-weight: 400; color: #6B6A65; font-variant-caps: all-small-caps; letter-spacing: 0.12em;">Right now</h2>
+<p style="margin: 0; font-size: 16px; line-height: 1.5;">Battery at 82%, about 5 hours left. Connected to Home Wi‑Fi. Three windows open on one workspace.</p>
 </section>
 </div>
 
 <div style="display: flex; flex-direction: column; gap: 36px;">
-<section style="display: flex; flex-direction: column; gap: 14px;">
-<div style="display: flex; align-items: baseline;">
-<h2 style="margin: 0; flex-grow: 1; font-family: 'Source Serif 4', serif; font-size: 20px; font-weight: 500;">Notifications</h2>
-<button style="height: 28px; padding: 0 8px; margin-right: -8px; border: 0; border-radius: 4px; background: transparent; color: #6B6A65; font-family: inherit; font-size: 13px; cursor: pointer;">Clear all</button>
+<section style="display: flex; flex-direction: column; gap: 0;">
+<div style="display: flex; align-items: baseline; margin-bottom: 12px;">
+<h2 style="margin: 0; flex-grow: 1; font-size: 14px; font-weight: 400; color: #6B6A65; font-variant-caps: all-small-caps; letter-spacing: 0.12em;">Notifications</h2>
+<button style="padding: 0; border: 0; background: transparent; color: #6B6A65; font-family: inherit; font-size: 14px; font-variant-caps: all-small-caps; letter-spacing: 0.12em; cursor: pointer;">Clear all</button>
 </div>
-<div style="display: flex; flex-direction: column; gap: 3px; padding-bottom: 12px; border-bottom: 1px solid #E3E0D6;">
-<div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #6B6A65;"><span style="width: 6px; height: 6px; border-radius: 3px; background: #D97757;"></span><span style="flex-grow: 1;">Calendar</span><span>14:30</span></div>
-<div style="font-size: 14px;">Design review in 30 minutes</div>
+<div style="display: flex; flex-direction: column; gap: 2px; padding: 8px 0 10px; border-bottom: 1px solid #E3E0D6;">
+<div style="font-size: 13px; color: #6B6A65; font-variant-caps: all-small-caps; letter-spacing: 0.08em;">Calendar · 14:30</div>
+<div style="font-size: 16px;">Design review in 30 minutes</div>
 </div>
-<div style="display: flex; flex-direction: column; gap: 3px; padding-bottom: 12px; border-bottom: 1px solid #E3E0D6;">
-<div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #6B6A65;"><span style="flex-grow: 1; padding-left: 14px;">Downloads</span><span>13:12</span></div>
-<div style="font-size: 14px;">Font pack finished downloading</div>
+<div style="display: flex; flex-direction: column; gap: 2px; padding: 8px 0 10px; border-bottom: 1px solid #E3E0D6;">
+<div style="font-size: 13px; color: #6B6A65; font-variant-caps: all-small-caps; letter-spacing: 0.08em;">Downloads · 13:12</div>
+<div style="font-size: 16px;">Font pack finished downloading</div>
 </div>
-<div style="display: flex; flex-direction: column; gap: 3px;">
-<div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #6B6A65;"><span style="flex-grow: 1; padding-left: 14px;">System</span><span>09:05</span></div>
-<div style="font-size: 14px;">12 updates available</div>
+<div style="display: flex; flex-direction: column; gap: 2px; padding: 8px 0 10px; border-bottom: 1px solid #E3E0D6;">
+<div style="font-size: 13px; color: #6B6A65; font-variant-caps: all-small-caps; letter-spacing: 0.08em;">System · 9:05</div>
+<div style="font-size: 16px;">12 updates available</div>
 </div>
 </section>
 
 <section style="display: flex; flex-direction: column; gap: 12px;">
-<h2 style="margin: 0; font-family: 'Source Serif 4', serif; font-size: 20px; font-weight: 500;">Right now</h2>
-<p style="margin: 0; font-size: 14px; line-height: 1.7;">Battery at 82%, about 5 hours left. Connected to Home Wi‑Fi. Plenty of memory and storage.</p>
+<h2 style="margin: 0 0 2px; font-size: 14px; font-weight: 400; color: #6B6A65; font-variant-caps: all-small-caps; letter-spacing: 0.12em;">Now playing</h2>
+<div style="display: flex; flex-direction: column; gap: 2px;">
+<div style="font-size: 16px;">Goldberg Variations · Aria</div>
+<div style="font-size: 15px; font-style: italic; color: #6B6A65;">J. S. Bach</div>
+</div>
+<div style="display: flex; align-items: center; gap: 2px; margin-left: -6px; font-size: 15px; font-style: italic;">
+<button style="height: 32px; padding: 0 6px; border: 0; background: transparent; color: #141413; font-family: inherit; font-size: inherit; font-style: inherit; cursor: pointer;">Previous</button>
+<span aria-hidden="true" style="color: #CFCABE;">·</span>
+<button style="height: 32px; padding: 0 6px; border: 0; background: transparent; color: #141413; font-family: inherit; font-size: inherit; font-style: inherit; cursor: pointer;">Pause</button>
+<span aria-hidden="true" style="color: #CFCABE;">·</span>
+<button style="height: 32px; padding: 0 6px; border: 0; background: transparent; color: #141413; font-family: inherit; font-size: inherit; font-style: inherit; cursor: pointer;">Next</button>
+</div>
 </section>
 </div>
 
 </div>
 </div>
+
+</div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":880,"height":720}}'>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
 class Component extends DCLogic {
 renderVals() {
 return {};

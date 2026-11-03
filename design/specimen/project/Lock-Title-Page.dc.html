@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Lock · Title page</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;1,8..60,400&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="position: relative; width: 1440px; height: 900px; overflow: hidden; background: #F0EEE6; font-family: 'Source Serif 4', serif; color: #141413;">
+
+<svg aria-hidden="true" width="1440" height="900" viewBox="0 0 1440 900" fill="none" stroke="#DCD7CA" stroke-width="1" style="position: absolute; left: 0; top: 0;">
+<path d="M-20 500 C300 430, 560 540, 780 494 S1150 400, 1460 460"></path>
+<path d="M-20 528 C300 461, 560 566, 780 522 S1150 433, 1460 490"></path>
+<path d="M-20 556 C300 492, 560 592, 780 550 S1150 466, 1460 520"></path>
+<path d="M-20 584 C300 523, 560 618, 780 578 S1150 499, 1460 550"></path>
+<path d="M-20 612 C300 554, 560 644, 780 606 S1150 532, 1460 580"></path>
+<path d="M-20 640 C300 585, 560 670, 780 634 S1150 565, 1460 610"></path>
+<path d="M-20 668 C300 616, 560 696, 780 662 S1150 598, 1460 640"></path>
+<path d="M-20 696 C300 647, 560 722, 780 690 S1150 631, 1460 670"></path>
+<path d="M-20 724 C300 678, 560 748, 780 718 S1150 664, 1460 700"></path>
+<path d="M-20 752 C300 709, 560 774, 780 746 S1150 697, 1460 730"></path>
+<path d="M-20 780 C300 740, 560 800, 780 774 S1150 730, 1460 760"></path>
+<path d="M-20 808 C300 771, 560 826, 780 802 S1150 763, 1460 790"></path>
+</svg>
+
+<div style="position: absolute; left: 115px; top: 214px; display: flex; flex-direction: column; gap: 4px;">
+<div style="font-size: 20px; font-style: italic; color: #6B6A65;">{{weekday}}</div>
+<div style="margin-left: -3px; font-size: 64px; font-weight: 400; line-height: 1.1; letter-spacing: -0.01em; font-variant-numeric: oldstyle-nums;">{{date}}</div>
+</div>
+
+<div style="position: absolute; left: 656px; top: 386px; width: 128px; height: 128px; box-sizing: border-box; border: 2px solid #E3E0D6; border-radius: 64px; background: #FAF9F5; display: flex; align-items: center; justify-content: center; opacity: {{ringOpacity}};">
+<span style="font-size: 15px; font-style: italic; color: #6B6A65;">typing</span>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"weekday":{"editor":"text","default":"Monday","section":"Title page"},"date":{"editor":"text","default":"November 2","section":"Title page"},"ringOpacity":{"editor":"range","default":0,"min":0,"max":1,"step":1,"section":"Password ring"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+return {
+weekday: this.props.weekday ?? 'Monday',
+date: this.props.date ?? 'November 2',
+ringOpacity: this.props.ringOpacity ?? 0
+};
+}
+}
+</script>
+</body>
+</html>
