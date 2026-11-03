@@ -52,4 +52,4 @@
 
 ## 许可证
 
-待定。
+[MIT](LICENSE)。随项目分发的图版线稿各有自己的授权，列在 [design/plates/README.md](design/plates/README.md)。

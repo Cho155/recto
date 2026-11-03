@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 rust-version = "1.92"
 description = "Liubai's desktop shell: bar and Today page for niri"
+license = "MIT"
 publish = false
 
 [dependencies]
