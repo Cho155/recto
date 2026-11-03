@@ -1,6 +1,6 @@
 # 项目状态
 
-更新：2026-11-03（第二天）。阶段 0–3 完成，阶段 4 大部分完成。上午打磨了动效、材质、排版；下午按作者的方向改为**古典的书页风格**（D63–D72）。全部在测试虚拟机中验证过，本机没有做过测试（见下方“没做”里的一处例外）。
+更新：2026-11-03 傍晚（第二天）。阶段 0–3 完成，阶段 4 大部分完成。上午打磨了动效、材质、排版；下午按作者的方向改为**古典的书页风格**（D63–D72）。全部在测试虚拟机中验证过，本机没有做过测试（见下方“没做”里的一处例外）。
 
 ## 现在能用的
 
@@ -43,7 +43,7 @@
 - 许可证未定。
 - 项目已 `git init`，**还没有任何提交**。
 
-## 测试机现状（`~/VMs/liubai-arch/`，2026-11-03 下午仍在运行）
+## 测试机现状（`~/VMs/liubai-arch/`，2026-11-03 傍晚仍在运行）
 
 - 启动：`./start.sh`；执行命令：`./vm '<命令>'`；同步项目：`./sync.sh`（不覆盖测试机里的 `build/` 和 `shell/target/`）。
 - 已安装：niri 26.04 一套、Rust 工具链、PipeWire、UPower、NetworkManager（取代了 systemd-networkd）、fcitx5（配置了 us 和 de 两种键盘布局）、nm-applet、ydotool、swayidle、polkit-gnome。
@@ -54,7 +54,8 @@
   - arch 用户加入了 wheel 组，用于测授权弹窗。
 - 每次开机后，要模拟点击需先启动 `sudo ydotoold -p /tmp/.ydotool_socket -P 0666`。
 - 测试过程中往 `~/Documents/monday-notes.md` 误打进了一行 “arch”（只在测试机里）。
-- 2026-11-03 新增：装了 imagemagick（用于把慢放截图拼成一张）。
+- 2026-11-03 新增：imagemagick（拼慢放截图）、python-fonttools（查字体的 OpenType 特性）、qt6ct（测 Qt 主题）。
+- 测试用的文件：`~/Documents/liubai-sample.md`（编辑器配色样例）；`/tmp/pt/`（测试图版，重启即清）。
 - 测试期间会手动停掉 swayidle（`pkill -x swayidle`），否则 10 分钟后锁屏、截图全是锁屏画面；重启 niri 会话后它会自动回来。锁屏后可以用 `niri msg action quit --skip-confirmation` 重启会话来解除（自动登录会重新进入）。
 - 慢放：外壳用 `GTK_SLOWDOWN=8` 启动；niri 在 `local.kdl` 里临时加 `animations { slowdown 10.0 }`，用完删掉。
 
