@@ -34,6 +34,14 @@
 - **截图**：`docs/screenshots/`，36 张。古典风格见 `2026-11-03-vm-classical-*.png`，另有 `…-today-now-playing.png`、`…-text-editor-*.png`、`…-qt6ct.png`、`…-plate-test-drawing.png`（叶子是测试用的线稿，不随项目分发）、`…-lock-title-page.png`。
 - **样张画布**：https://claude.ai/artifact/LsCAAp3mUTsEYSnUoPumiz（私有；第 13 版；源文件在 `design/specimen/project/`）。
 
+## 真机第一轮（2026-11-03 傍晚，ThinkPad X230，test 账户）
+
+- 安装一次成功：`start` 用 sudo 装好 12 个包，编译 3 分 33 秒（`reports/real-hardware/install-2026-11-03-1754.log`，在 `/home/shared/liubai/` 里）。
+- **整轮没有状态栏和壁纸，原因是启动顺序，不是外壳坏了**：作者重启后先从 greetd 登录了 test，niri 用默认配置启动（17:28）；之后在 tty3 跑 `start` 安装（17:57），niri 热加载了留白的配置，但 `spawn-at-startup`（外壳、`session-start` 画壁纸、swayidle、foot 服务、授权代理）只在 niri 启动时执行，所以都没有运行；`start` 最后的 `niri-session` 因为已有会话而退出。空闲内存测量里也没有 liubai-shell 进程。
+- `finish` 只完成了机器信息和空闲内存（整个桌面 181.7 MiB PSS，不含外壳）；collect-report 打开今日页后，作者结束了会话，帧率、截图、日志都没收集。作者的截图还在 test 的 `~/Pictures/Screenshots`。
+- 作者的观察：纸模式在桌面上刺眼（这轮没有壁纸，傍晚 18 点用的还是 Paper，安装默认是 Paper 不是 Auto）；没有常驻状态栏（上面的启动问题）；终端字体（IBM Plex Mono 10.5）想改得更有味道。清单只做了一部分（手机没登录 claude.ai，打不开清单页）。
+- 这轮的日志是助手在作者要求“看日志”后，从系统日志里只读 test（UID 1001）本次开机的记录得到的。
+
 ## 没做 / 已知问题
 
 - **第一版还差**：真机验证（作者今晚在 test 账户里做，流程见 AGENTS.md）、英文 README（还没写）。
@@ -86,6 +94,7 @@
 2. **助手**：读真机结果：清单页的数据库、`/home/shared/liubai/reports/real-hardware/`（安装输出、`<时间>/report/summary.md`、截图、`journal.txt`）。
 3. **助手**：写英文 README（截图用最新的古典风格）。
 4. **助手**：根据真机报告修问题；用两组帧率决定 D50（cairo 还是 gl）；修好后重新做 bundle，请作者在 test 里再跑 `start`。
+5. 第一轮之后要做（作者说先讨论再开发）：`start` 和 `install.sh` 发现 niri 已在运行时，要求先退出会话再启动（或提示“重新登录才完整生效”）；默认主题用 Auto 还是 Paper；纸色在真机上的亮度；终端字体；之后重跑完整一轮。
 
 之后（1.1）：
 
