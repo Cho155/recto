@@ -160,8 +160,15 @@ if [[ -n "${NIRI_SOCKET:-}" ]]; then
         sleep 0.5
         setsid "$data/bin/liubai-shell" >/dev/null 2>&1 < /dev/null &
         "$data/bin/liubai-theme" session-start || true
-        note "Reloaded."
+        note "Reloaded. The idle lock and the password dialog start with the next login."
     fi
+elif systemctl --user -q is-active niri.service 2>/dev/null; then
+    # niri reloads its config file by itself, but runs spawn-at-startup only when
+    # it starts: a session that was already running gets Liubai's look, not its
+    # bar, wallpaper or idle lock.
+    note "A niri session is already running for this account. It has picked up"
+    note "Liubai's colors and keys, but the bar, wallpaper and idle lock start only"
+    note "when niri starts: log out of it (Super+Shift+E) and log in again."
 else
     note "Log out, then choose \"niri\" in your login screen,"
     note "or run niri-session from a text console."
