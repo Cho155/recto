@@ -67,12 +67,13 @@
 - polkit-gnome 常驻约 11–17 MiB，是可以优化的大头。
 - 所有测量都在虚拟机（virgl 显卡）里完成；在真机上要重新测量。
 
-## 测试机现状（`~/VMs/liubai-arch/`，2026-11-03 第六轮结束时已关机）
+## 测试机现状（`~/VMs/liubai-arch/`，2026-11-03 第七轮结束时已关机）
 
 - 启动：`./start.sh`；执行命令：`./vm '<命令>'`；同步项目：`./sync.sh`（不覆盖测试机里的 `build/` 和 `shell/target/`）。
 - 已安装：niri 26.04 一套、Rust 工具链、PipeWire、UPower、NetworkManager（取代了 systemd-networkd）、fcitx5（配置了 us 和 de 两种键盘布局）、nm-applet、ydotool、swayidle、polkit-gnome。2026-11-03 新增：imagemagick（拼慢放截图）、python-fonttools（查字体的 OpenType 特性）、qt6ct（测 Qt 主题）、python-gobject（跑假播放器）。
 - 测试机里装的是最新的构建和配置（用 `./install.sh` 装的，`gsettings-before.json` 里记的是 Adwaita 的默认值）；当前主题模式是 Auto。
 - 2026-11-03 第六轮：测试机里也有一个 `test` 账户（无密码、无 sudo，`~/bin/insession` 已拷入）和 `/home/shared`（`start`、`finish`、`liubai.bundle`、test 的副本），用来演练真机流程；装了 git。tty1 的自动登录已改回 arch。
+- 2026-11-03 第七轮：`~/art/` 里有图版候选的原图（`orig/`）、处理后的图（`plates/`）、截图（`shots/`）和渲染脚本 `render-plates.py`（逐张换壁纸、截全屏；先启动 ydotoold、停掉 swayidle）。test 账户装着 2e593fc 之后的留白，演练过“niri 已在运行时运行 `start`”（`start --no-packages`，`LIUBAI_LAUNCH` 可替换最后的 `exec niri-session`）。
 - 测试专用的改动：
   - tty1 自动登录进 niri；
   - `~/bin/insession` 让 SSH 命令带上会话环境；
