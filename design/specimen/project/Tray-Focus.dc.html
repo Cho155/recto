@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tray, critical, muted, focus</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&amp;family=Inter:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 1200px; height: 720px; box-sizing: border-box; padding: 56px 64px; background: #F0EEE6; font-family: Inter, sans-serif; color: #141413; display: flex; flex-direction: column; gap: 32px;">
+
+<section style="display: flex; flex-direction: column; gap: 10px;">
+<div style="font-size: 13px; color: #5F5E59;">Tray open — names in text, no colored icons. Click activates; “…” opens the app’s menu.</div>
+<div style="position: relative; height: 212px;">
+<div style="width: 1072px; height: 32px; box-sizing: border-box; padding: 0 16px; display: flex; align-items: center; gap: 12px; background: #FAF9F5; border-bottom: 1px solid #E3E0D6; font-size: 13px;">
+<div style="flex-grow: 1;"></div>
+<span aria-label="Input method: Pinyin" style="display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 20px; box-sizing: border-box; border: 1px solid #E3E0D6; border-radius: 4px; font-size: 12px; color: #6B6A65;">中</span>
+<button aria-label="Tray, 4 items" aria-expanded="true" style="display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; padding: 0; border: 0; border-radius: 4px; background: #F0EEE6; color: #141413;"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"></path></svg></button>
+<span style="color: #6B6A65;">Mon, Nov 2</span>
+<span style="font-family: 'Source Serif 4', serif; font-size: 15px; font-weight: 500; font-variant-numeric: tabular-nums;">14:30</span>
+</div>
+<div role="menu" aria-label="Tray" style="position: absolute; top: 40px; left: 640px; width: 300px; box-sizing: border-box; padding: 6px; background: #FAF9F5; border: 1px solid #E3E0D6; border-radius: 8px; box-shadow: 0 6px 24px rgba(20, 20, 19, 0.10); display: flex; flex-direction: column;">
+<div style="height: 40px; display: flex; align-items: center; gap: 10px; padding: 0 4px 0 10px; border-radius: 6px; background: #F0EEE6;">
+<span style="flex-grow: 1; font-size: 14px;">Sync</span><span style="font-size: 13px; color: #6B6A65;">Up to date</span>
+<button aria-label="Menu for Sync" style="width: 28px; height: 28px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: #6B6A65; font-size: 15px;">…</button>
+</div>
+<div style="height: 40px; display: flex; align-items: center; gap: 10px; padding: 0 4px 0 10px;">
+<span style="flex-grow: 1; font-size: 14px;">VPN</span><span style="font-size: 13px; color: #6B6A65;">Connected</span>
+<button aria-label="Menu for VPN" style="width: 28px; height: 28px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: #6B6A65; font-size: 15px;">…</button>
+</div>
+<div style="height: 40px; display: flex; align-items: center; gap: 10px; padding: 0 4px 0 10px;">
+<span style="flex-grow: 1; font-size: 14px;">Input method</span><span style="font-size: 13px; color: #6B6A65;">Pinyin</span>
+<button aria-label="Menu for Input method" style="width: 28px; height: 28px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: #6B6A65; font-size: 15px;">…</button>
+</div>
+<div style="height: 40px; display: flex; align-items: center; gap: 10px; padding: 0 4px 0 10px;">
+<span style="flex-grow: 1; font-size: 14px;">Music</span>
+<button aria-label="Menu for Music" style="width: 28px; height: 28px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: #6B6A65; font-size: 15px;">…</button>
+</div>
+</div>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 10px;">
+<div style="font-size: 13px; color: #5F5E59;">Ink · a critical notification stays until dismissed; muted volume shows the word, not a number.</div>
+<div style="height: 180px; box-sizing: border-box; padding: 28px 32px; border-radius: 10px; background: #171615; display: flex; align-items: flex-start; gap: 48px;">
+<div style="position: relative; width: 320px; box-sizing: border-box; padding: 14px 16px 16px; background: #1F1E1D; border: 1px solid #D97757; border-radius: 8px; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.30); display: flex; flex-direction: column; gap: 4px; color: #ECEAE2;">
+<div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #A3A199;"><span style="width: 6px; height: 6px; border-radius: 3px; background: #D97757;"></span><span>Battery</span><span aria-hidden="true">·</span><span>now</span></div>
+<div style="font-size: 14px; font-weight: 500;">Battery at 5%</div>
+<div style="font-size: 13px; color: #A3A199;">Plug in soon. The laptop will sleep at 2%.</div>
+<button aria-label="Dismiss" style="position: absolute; top: 8px; right: 8px; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: #A3A199;"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+</div>
+<div role="status" aria-label="Volume muted" style="margin-top: 30px; width: 320px; height: 56px; box-sizing: border-box; padding: 0 20px; display: flex; align-items: center; gap: 16px; background: #1F1E1D; border: 1px solid #3A3936; border-radius: 8px; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.30); color: #ECEAE2;">
+<span style="font-size: 13px; color: #A3A199;">Volume</span>
+<div aria-hidden="true" style="flex-grow: 1; height: 2px; border-radius: 1px; background: #3A3936;"></div>
+<span style="font-family: 'Source Serif 4', serif; font-size: 16px; font-weight: 500;">Muted</span>
+</div>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 10px;">
+<div style="font-size: 13px; color: #5F5E59;">Focus — held notifications wait in Today; critical ones still come through.</div>
+<div style="width: 1072px; height: 32px; box-sizing: border-box; padding: 0 16px; display: flex; align-items: center; gap: 12px; background: #FAF9F5; border-bottom: 1px solid #E3E0D6; font-size: 13px;">
+<div style="flex-grow: 1;"></div>
+<button style="height: 24px; padding: 0 8px; border: 0; border-radius: 4px; background: #F0EEE6; color: #141413; font-family: inherit; font-size: 13px;">Focus until 16:00</button>
+<span style="color: #6B6A65;">3 held</span>
+<span aria-hidden="true" style="width: 1px; height: 14px; background: #E3E0D6;"></span>
+<span aria-label="Input method: English" style="display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 20px; box-sizing: border-box; border: 1px solid #E3E0D6; border-radius: 4px; font-size: 11px; font-weight: 500; color: #6B6A65;">EN</span>
+<span style="color: #6B6A65;">Mon, Nov 2</span>
+<span style="font-family: 'Source Serif 4', serif; font-size: 15px; font-weight: 500; font-variant-numeric: tabular-nums;">14:30</span>
+</div>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":720}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

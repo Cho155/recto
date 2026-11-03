@@ -1,0 +1,925 @@
+#!/usr/bin/env python3
+"""liubai-theme: turn Liubai's design tokens into app configs, and switch themes.
+
+  build                    Render templates/ into build/ for every theme.
+  install [--dry-run]      Copy build/ to the data dir and link app configs to it.
+  switch paper|ink|auto    Make a theme current (or follow the time of day) and tell running apps.
+  toggle                   Switch to the other theme.
+  status                   Print the current theme and where things live.
+  wallpaper [options]      Write the wallpaper (contours, or your plate) as SVG.
+  session-start            Login hook used by the niri config: wallpaper, color scheme.
+  lock                     Lock the screen with swaylock in the current theme.
+
+Needs Python 3.11 or newer and nothing outside the standard library.
+"""
+
+import argparse
+import base64
+import hashlib
+import html
+import json
+import math
+import os
+import random
+import re
+import shutil
+import signal
+import struct
+import subprocess
+import sys
+import time
+import tomllib
+import xml.etree.ElementTree as ElementTree
+from pathlib import Path
+
+THEMES = ("paper", "ink")
+
+HERE = Path(__file__).resolve().parent
+REPO = HERE.parent
+TEMPLATES = REPO / "templates"
+HOME = Path.home()
+DATA = Path(os.environ.get("XDG_DATA_HOME") or HOME / ".local/share") / "liubai"
+CONFIG = Path(os.environ.get("XDG_CONFIG_HOME") or HOME / ".config")
+CACHE = Path(os.environ.get("XDG_CACHE_HOME") or HOME / ".cache") / "liubai"
+BUILD_MARK = ".liubai-build"
+
+# Template (under templates/) and whether it is rendered once or once per theme.
+TARGETS = [
+    ("niri/config.kdl", "shared"),
+    ("foot/foot.ini", "shared"),
+    ("gtk-4.0/gtk.css", "shared"),
+    ("niri/theme.kdl", "theme"),
+    ("fuzzel/fuzzel.ini", "theme"),
+    ("mako/config", "theme"),
+    ("gtk-3.0/gtk.css", "theme"),
+    ("kitty/liubai.conf", "theme"),
+    ("alacritty/liubai.toml", "theme"),
+    ("shell/style.css", "theme"),
+    ("shell/auto", "shared"),
+    ("shell/tokens.json", "shared"),
+]
+
+SHELL_BINARY = REPO / "shell" / "target" / "release" / "liubai-shell"
+
+# App config path (under ~/.config) -> file in the data dir it should point to.
+# Paths through "current" follow theme switches without being relinked.
+LINKS = [
+    ("niri/config.kdl", "shared/niri/config.kdl"),
+    ("foot/foot.ini", "shared/foot/foot.ini"),
+    ("fuzzel/fuzzel.ini", "current/fuzzel/fuzzel.ini"),
+    ("mako/config", "current/mako/config"),
+    ("gtk-3.0/gtk.css", "current/gtk-3.0/gtk.css"),
+    ("gtk-4.0/gtk.css", "shared/gtk-4.0/gtk.css"),   # follows color-scheme live
+]
+
+
+class Failure(Exception):
+    """A problem the user can fix; printed without a traceback."""
+
+
+# ── Tokens ────────────────────────────────────────────────────────────────
+
+def default_tokens_path():
+    repo_tokens = REPO / "design" / "tokens.toml"
+    return repo_tokens if repo_tokens.exists() else DATA / "tokens.toml"
+
+
+def load_tokens(path):
+    try:
+        with open(path, "rb") as f:
+            tokens = tomllib.load(f)
+    except FileNotFoundError:
+        raise Failure(f"tokens not found: {path}")
+    except tomllib.TOMLDecodeError as e:
+        raise Failure(f"{path}: {e}")
+    check_tokens(tokens, path)
+    tokens["_base"] = str(Path(path).resolve().parent)   # plates are found relative to the tokens
+    return tokens
+
+
+def check_tokens(tokens, path):
+    """Both themes must define the same names, so no template can work for one and not the other."""
+    themes = tokens.get("theme", {})
+    for name in THEMES:
+        if name not in themes:
+            raise Failure(f"{path}: missing [theme.{name}]")
+    if tokens.get("meta", {}).get("default_theme") not in THEMES:
+        raise Failure(f"{path}: meta.default_theme must be one of {', '.join(THEMES)}")
+
+    def keys(table, prefix=""):
+        out = set()
+        for k, v in table.items():
+            out |= keys(v, f"{prefix}{k}.") if isinstance(v, dict) else {prefix + k}
+        return out
+
+    a, b = keys(themes["paper"]), keys(themes["ink"])
+    if a != b:
+        only = sorted(a ^ b)
+        raise Failure(f"{path}: paper and ink differ in: {', '.join(only)}")
+
+
+def tilde(path):
+    """Write paths under $HOME as ~/..., which niri, sh and kitty all expand."""
+    try:
+        return "~/" + str(Path(path).relative_to(HOME))
+    except ValueError:
+        return str(path)
+
+
+def context(tokens, theme=None):
+    ctx = {k: v for k, v in tokens.items() if k != "theme"}
+    ctx["paper"] = tokens["theme"]["paper"]
+    ctx["ink"] = tokens["theme"]["ink"]
+    ctx["default"] = tokens["theme"][tokens["meta"]["default_theme"]]
+    ctx["paths"] = {"data": tilde(DATA), "config": tilde(CONFIG)}
+    if theme:
+        ctx["t"] = tokens["theme"][theme]
+        ctx["theme_name"] = theme
+    return ctx
+
+
+# ── Templates ─────────────────────────────────────────────────────────────
+# {{ path.to.token }} or {{ path.to.token | filter }} or {{ path | filter(arg) }}
+
+PLACEHOLDER = re.compile(
+    r"\{\{\s*([A-Za-z_][\w.]*)\s*(?:\|\s*([A-Za-z_]\w*)\s*(?:\(\s*([^)]*?)\s*\))?\s*)?\}\}"
+)
+HEX = re.compile(r"^#([0-9a-fA-F]{6})([0-9a-fA-F]{2})?$")
+
+
+def parse_hex(value, where):
+    m = HEX.match(str(value))
+    if not m:
+        raise Failure(f"{where}: '{value}' is not a #RRGGBB or #RRGGBBAA color")
+    rgb = m.group(1).lower()
+    alpha = int(m.group(2), 16) / 255 if m.group(2) else 1.0
+    return rgb, alpha
+
+
+def alpha_byte(a):
+    return f"{round(max(0.0, min(1.0, a)) * 255):02x}"
+
+
+def number(x):
+    text = f"{x:.3f}".rstrip("0").rstrip(".")
+    return text or "0"
+
+
+def arg_float(arg, where):
+    try:
+        return float(arg)
+    except (TypeError, ValueError):
+        raise Failure(f"{where}: filter needs a number, got '{arg}'")
+
+
+def f_bare(v, arg, where):
+    rgb, a = parse_hex(v, where)
+    return rgb if a == 1.0 and len(str(v)) == 7 else rgb + alpha_byte(a)
+
+
+def f_bare_alpha(v, arg, where):
+    rgb, _ = parse_hex(v, where)
+    return rgb + alpha_byte(arg_float(arg, where))
+
+
+def f_hash_alpha(v, arg, where):
+    return "#" + f_bare_alpha(v, arg, where)
+
+
+def f_rgba(v, arg, where):
+    rgb, _ = parse_hex(v, where)
+    r, g, b = (int(rgb[i:i + 2], 16) for i in (0, 2, 4))
+    return f"rgba({r}, {g}, {b}, {number(arg_float(arg, where))})"
+
+
+def f_css(v, arg, where):
+    rgb, a = parse_hex(v, where)
+    if len(str(v)) == 7:
+        return "#" + rgb
+    r, g, b = (int(rgb[i:i + 2], 16) for i in (0, 2, 4))
+    return f"rgba({r}, {g}, {b}, {number(a)})"
+
+
+def f_yesno(v, arg, where):
+    if not isinstance(v, bool):
+        raise Failure(f"{where}: yesno needs true or false, got '{v}'")
+    return "yes" if v else "no"
+
+
+# niri's easing names, as CSS curves (easings.net).
+EASINGS = {
+    "linear": "linear",
+    "ease-out-quad": "cubic-bezier(0.5, 1, 0.89, 1)",
+    "ease-out-cubic": "cubic-bezier(0.33, 1, 0.68, 1)",
+    "ease-out-expo": "cubic-bezier(0.16, 1, 0.3, 1)",
+}
+
+
+def f_css_easing(v, arg, where):
+    if v not in EASINGS:
+        raise Failure(f"{where}: no CSS curve for easing '{v}' (known: {', '.join(EASINGS)})")
+    return EASINGS[v]
+
+
+FILTERS = {
+    "bare": f_bare,              # #FAF9F5 -> faf9f5
+    "bare_alpha": f_bare_alpha,  # #FAF9F5 | bare_alpha(1) -> faf9f5ff
+    "hash_alpha": f_hash_alpha,  # #D97757 | hash_alpha(0.35) -> #d9775759
+    "rgba": f_rgba,              # #141413 | rgba(0.07) -> rgba(20, 20, 19, 0.07)
+    "css": f_css,                # #RRGGBB as is, #RRGGBBAA -> rgba(...)
+    "yesno": f_yesno,            # true -> yes
+    "css_easing": f_css_easing,  # ease-out-cubic -> cubic-bezier(0.33, 1, 0.68, 1)
+}
+
+
+def lookup(ctx, dotted, where):
+    cur = ctx
+    for part in dotted.split("."):
+        if not isinstance(cur, dict) or part not in cur:
+            raise Failure(f"{where}: unknown token '{dotted}'")
+        cur = cur[part]
+    if isinstance(cur, (dict, list)):
+        raise Failure(f"{where}: '{dotted}' is a table or list, not a value")
+    return cur
+
+
+def plain(value):
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    return str(value)
+
+
+def render(text, ctx, name):
+    def substitute(m):
+        where = f"{name}:{text.count(chr(10), 0, m.start()) + 1}"
+        value = lookup(ctx, m.group(1), where)
+        filter_name = m.group(2)
+        if not filter_name:
+            return plain(value)
+        if filter_name not in FILTERS:
+            raise Failure(f"{where}: unknown filter '{filter_name}'")
+        return FILTERS[filter_name](value, m.group(3), where)
+
+    out = PLACEHOLDER.sub(substitute, text)
+    stray = re.search(r"\{\{|\}\}", out)
+    if stray:
+        line = out.count("\n", 0, stray.start()) + 1
+        raise Failure(f"{name}: malformed placeholder near output line {line}")
+    return out
+
+
+def write(path, text):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+
+
+# ── build ─────────────────────────────────────────────────────────────────
+
+def cmd_build(args):
+    tokens = load_tokens(args.tokens)
+    out = Path(args.out).resolve()
+    if out.exists():
+        if not (out / BUILD_MARK).exists() and any(out.iterdir()):
+            raise Failure(f"{out} exists and was not made by liubai-theme; choose another --out")
+        shutil.rmtree(out)
+
+    count = 0
+    for rel, scope in TARGETS:
+        template = TEMPLATES / rel
+        if not template.exists():
+            raise Failure(f"missing template: {template}")
+        text = template.read_text(encoding="utf-8")
+        if scope == "shared":
+            write(out / "shared" / rel, render(text, context(tokens), rel))
+            count += 1
+        else:
+            for theme in THEMES:
+                write(out / theme / rel, render(text, context(tokens, theme), rel))
+                count += 1
+
+    shutil.copy2(args.tokens, out / "tokens.toml")
+    # Plates travel with the tokens, so a relative plate path still works once installed.
+    plates = Path(args.tokens).resolve().parent / "plates"
+    if plates.is_dir():
+        shutil.copytree(plates, out / "plates")
+    write(out / BUILD_MARK, tokens["meta"]["version"] + "\n")
+    print(f"Rendered {count} files into {out}")
+
+
+# ── install ───────────────────────────────────────────────────────────────
+
+def current_theme():
+    link = DATA / "current"
+    if link.is_symlink():
+        name = Path(os.readlink(link)).name
+        if name in THEMES:
+            return name
+    return None
+
+
+def set_current(theme):
+    tmp = DATA / ".current.tmp"
+    if tmp.is_symlink() or tmp.exists():
+        tmp.unlink()
+    tmp.symlink_to(theme)
+    os.replace(tmp, DATA / "current")
+
+
+def backup_name(path):
+    return path.with_name(f"{path.name}.liubai-backup-{time.strftime('%Y%m%d-%H%M%S')}")
+
+
+def cmd_install(args):
+    build = Path(args.build).resolve()
+    if not (build / BUILD_MARK).exists():
+        raise Failure(f"{build} is not a build; run `liubai-theme build` first")
+    tokens = load_tokens(build / "tokens.toml")
+    dry = args.dry_run
+    say = (lambda msg: print("would " + msg)) if dry else (lambda msg: print(msg))
+
+    for part in ("shared",) + THEMES:
+        say(f"copy {build / part} -> {DATA / part}")
+        if not dry:
+            if (DATA / part).exists():
+                shutil.rmtree(DATA / part)
+            shutil.copytree(build / part, DATA / part)
+    say(f"copy tokens, plates and this tool into {DATA}")
+    if not dry:
+        shutil.copy2(build / "tokens.toml", DATA / "tokens.toml")
+        if (DATA / "plates").exists():
+            shutil.rmtree(DATA / "plates")
+        if (build / "plates").is_dir():
+            shutil.copytree(build / "plates", DATA / "plates")
+        (DATA / "bin").mkdir(parents=True, exist_ok=True)
+        tool = DATA / "bin" / "liubai-theme"
+        if Path(__file__).resolve() != tool.resolve():
+            shutil.copy2(Path(__file__).resolve(), tool)
+        tool.chmod(0o755)
+    if SHELL_BINARY.exists():
+        say(f"copy {SHELL_BINARY} into {DATA / 'bin'}")
+        if not dry:
+            # Copy beside, then rename: a running shell keeps its old binary intact.
+            tmp = DATA / "bin" / ".liubai-shell.tmp"
+            shutil.copy2(SHELL_BINARY, tmp)
+            tmp.chmod(0o755)
+            os.replace(tmp, DATA / "bin" / "liubai-shell")
+    else:
+        print(f"note: {SHELL_BINARY} not built; the bar will be missing "
+              "(cargo build --release in shell/)")
+
+    if current_theme() is None:
+        theme = tokens["meta"]["default_theme"]
+        say(f"make {theme} the current theme")
+        if not dry:
+            set_current(theme)
+            write_mode(theme)
+
+    for rel, target in LINKS:
+        link, dest = CONFIG / rel, DATA / target
+        if link.is_symlink() and os.readlink(link) == str(dest):
+            continue
+        if link.is_symlink() and os.readlink(link).startswith(str(DATA) + os.sep):
+            # Our own link from an older layout: replace it, nothing to keep.
+            say(f"replace old link {link}")
+            if not dry:
+                link.unlink()
+        elif link.is_symlink() or link.exists():
+            backup = backup_name(link)
+            say(f"move {link} aside to {backup.name}")
+            if not dry:
+                link.rename(backup)
+        say(f"link {link} -> {dest}")
+        if not dry:
+            link.parent.mkdir(parents=True, exist_ok=True)
+            link.symlink_to(dest)
+
+    say("set GTK fonts and color scheme with gsettings")
+    if not dry:
+        apply_gsettings(tokens, current_theme() or tokens["meta"]["default_theme"], fonts=True)
+
+    print()
+    print("Not linked automatically. Add these lines if you use them:")
+    print(f"  kitty.conf:     include {tilde(DATA)}/current/kitty/liubai.conf")
+    print(f'  alacritty.toml: [general] import = ["{tilde(DATA)}/current/alacritty/liubai.toml"]')
+    if dry:
+        print("\nDry run: nothing was changed.")
+
+
+# ── switch ────────────────────────────────────────────────────────────────
+
+def quiet(cmd, timeout=5):
+    """Run a helper if it is installed; failures are not fatal."""
+    if shutil.which(cmd[0]) is None:
+        return False
+    try:
+        return subprocess.run(cmd, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                              stderr=subprocess.DEVNULL, timeout=timeout).returncode == 0
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+
+def gsetting(key, value):
+    quiet(["gsettings", "set", "org.gnome.desktop.interface", key, value])
+
+
+def apply_gsettings(tokens, theme, fonts=False):
+    if shutil.which("gsettings") is None:
+        return
+    light = tokens["theme"][theme]["scheme"] == "light"
+    gsetting("color-scheme", "prefer-light" if light else "prefer-dark")
+    for themes_dir in (Path("/usr/share/themes"), HOME / ".local/share/themes", HOME / ".themes"):
+        if (themes_dir / "adw-gtk3").exists():
+            gsetting("gtk-theme", "adw-gtk3" if light else "adw-gtk3-dark")
+            break
+    if fonts:
+        f = tokens["font"]
+        gsetting("font-name", f"{f['sans']} {f['pt']['ui']}")
+        gsetting("document-font-name", f"{f['sans']} {f['pt']['ui']}")
+        gsetting("monospace-font-name", f"{f['mono']} {f['pt']['terminal']}")
+
+
+def tell_apps(tokens, theme):
+    light = tokens["theme"][theme]["scheme"] == "light"
+    # foot: SIGUSR2 selects [colors-light], SIGUSR1 selects [colors-dark].
+    # Sent to the server, it reaches every client and future ones.
+    sig = "-USR2" if light else "-USR1"
+    quiet(["pkill", sig, "-x", "foot"])
+    quiet(["pkill", sig, "-x", "footclient"])
+    quiet(["pkill", "-USR1", "-x", "kitty"])          # kitty reloads its config
+    quiet(["makoctl", "reload"])
+    quiet(["niri", "msg", "action", "load-config-file"])
+    # Never starts a shell: a fresh instance ignores reload-style and exits.
+    quiet([str(DATA / "bin" / "liubai-shell"), "reload-style"])
+    apply_gsettings(tokens, theme)
+    set_wallpaper(tokens, theme)
+
+
+def read_mode():
+    try:
+        mode = (DATA / "mode").read_text().strip()
+    except OSError:
+        return None
+    return mode if mode in THEMES + ("auto",) else None
+
+
+def write_mode(mode):
+    write(DATA / "mode", mode + "\n")
+
+
+def clock_minutes(text):
+    hours, minutes = text.split(":")
+    return int(hours) * 60 + int(minutes)
+
+
+def theme_for_now(tokens):
+    """Auto mode: Paper from auto.paper_from until auto.ink_from, otherwise Ink."""
+    paper_from = clock_minutes(tokens["auto"]["paper_from"])
+    ink_from = clock_minutes(tokens["auto"]["ink_from"])
+    now = time.localtime()
+    minute = now.tm_hour * 60 + now.tm_min
+    if paper_from <= ink_from:
+        paper = paper_from <= minute < ink_from
+    else:
+        paper = minute >= paper_from or minute < ink_from
+    return "paper" if paper else "ink"
+
+
+def cmd_switch(args, theme=None):
+    requested = theme or args.theme
+    tokens = load_tokens(args.tokens)
+    theme = theme_for_now(tokens) if requested == "auto" else requested
+    if not (DATA / theme).is_dir():
+        raise Failure(f"{DATA / theme} is missing; run `liubai-theme install` first")
+    write_mode(requested)
+    set_current(theme)
+    tell_apps(tokens, theme)
+    print(f"Theme: {theme}" + (" (following the time of day)" if requested == "auto" else ""))
+
+
+def cmd_toggle(args):
+    now = current_theme() or load_tokens(args.tokens)["meta"]["default_theme"]
+    cmd_switch(args, "ink" if now == "paper" else "paper")
+
+
+def cmd_status(args):
+    print(f"theme:   {current_theme() or 'not installed'}")
+    print(f"mode:    {read_mode() or 'not set'}")
+    print(f"data:    {DATA}")
+    print(f"tokens:  {args.tokens}")
+    for rel, target in LINKS:
+        link = CONFIG / rel
+        state = "linked" if link.is_symlink() and os.readlink(link) == str(DATA / target) else "not linked"
+        print(f"{state:11} {link}")
+
+
+# ── wallpaper ─────────────────────────────────────────────────────────────
+
+def smooth_path(points):
+    """Catmull-Rom through the points, written as cubic Béziers."""
+    def n(v):
+        return f"{v:.1f}"
+
+    d = [f"M{n(points[0][0])} {n(points[0][1])}"]
+    last = len(points) - 1
+    for i in range(last):
+        p0 = points[i - 1] if i > 0 else points[i]
+        p1, p2 = points[i], points[i + 1]
+        p3 = points[i + 2] if i + 2 <= last else p2
+        c1 = (p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6)
+        c2 = (p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6)
+        d.append(f"C{n(c1[0])} {n(c1[1])} {n(c2[0])} {n(c2[1])} {n(p2[0])} {n(p2[1])}")
+    return " ".join(d)
+
+
+def rgb01(color):
+    return tuple(int(color[i:i + 2], 16) / 255 for i in (1, 3, 5))
+
+
+def contour_parts(tokens, theme, width, height, scale):
+    """Quiet contour lines across the lower half of the screen.
+
+    Each line is a sum of a few slow sine waves. Neighbouring lines share the
+    waves with a small phase drift, so they flow together and never cross.
+    """
+    t = tokens["theme"][theme]
+    w = tokens["wallpaper"]
+    rng = random.Random(w["seed"])
+    waves = []
+    for freq, amp in ((0.8, 1.0), (1.7, 0.45), (3.1, 0.18)):
+        waves.append((freq * rng.uniform(0.85, 1.15), amp,
+                      rng.uniform(0, 2 * math.pi), rng.uniform(0.04, 0.09)))
+
+    lines = int(w["lines"])
+    top = w["band_top"] * height
+    gap = w["spacing"] * height
+    amp_top, amp_bottom = 0.045 * height, 0.022 * height
+    rise = 0.06 * height                  # lines climb gently to the right
+    x0, x1, steps = -0.02 * width, 1.02 * width, 64
+
+    paths = []
+    for k in range(lines):
+        frac = k / max(lines - 1, 1)
+        amp = amp_top + (amp_bottom - amp_top) * frac
+        points = []
+        for i in range(steps + 1):
+            x = x0 + (x1 - x0) * i / steps
+            u = x / width
+            wave = sum(a * math.sin(2 * math.pi * f * u + phase + k * drift)
+                       for f, a, phase, drift in waves)
+            points.append((x, top + k * gap + amp * wave - rise * u))
+        paths.append(smooth_path(points))
+
+    stroke = number(max(1.0, float(scale)))
+    out = [f'<g fill="none" stroke="{t["contour"]}" stroke-width="{stroke}" '
+           f'stroke-linecap="round" stroke-linejoin="round">']
+    out += [f'<path d="{d}"/>' for d in paths]
+    out.append("</g>")
+    return out
+
+
+# ── plates: your own line drawing, set on the page like a book illustration ──
+
+def plate_path(tokens):
+    """The drawing named by wallpaper.plate, or None (then the contours are drawn)."""
+    name = str(tokens["wallpaper"].get("plate", "")).strip()
+    if not name:
+        return None
+    path = Path(os.path.expanduser(name))
+    if not path.is_absolute():
+        path = Path(tokens.get("_base", ".")) / path
+    return path if path.is_file() else None
+
+
+def image_size(data):
+    """(width, height) of PNG or SVG data, for its proportions; None if unknown."""
+    if data[:8] == b"\x89PNG\r\n\x1a\n" and len(data) >= 24:
+        return struct.unpack(">II", data[16:24])
+    try:
+        root = ElementTree.fromstring(data)
+    except ElementTree.ParseError:
+        return None
+    box = (root.get("viewBox") or "").replace(",", " ").split()
+    if len(box) == 4:
+        try:
+            w, h = float(box[2]), float(box[3])
+            return (w, h) if w > 0 and h > 0 else None
+        except ValueError:
+            pass
+
+    def length(value):
+        m = re.match(r"\s*([\d.]+)", value or "")
+        return float(m.group(1)) if m else None
+
+    w, h = length(root.get("width")), length(root.get("height"))
+    return (w, h) if w and h else None
+
+
+def plate_parts(tokens, theme, path, width, height, scale):
+    """The drawing, recolored: its darkness becomes ink of the theme's plate color.
+
+    Dark lines on a light ground work as given, in Paper and in Ink alike. The
+    drawing is composited onto white first, so a transparent background stays clear.
+    """
+    t = tokens["theme"][theme]
+    w = tokens["wallpaper"]
+    data = path.read_bytes()
+    size = image_size(data)
+    if not size:
+        raise Failure(f"{path}: cannot tell the drawing's size (PNG, or SVG with a viewBox)")
+    aspect = size[0] / size[1]
+    mime = "image/png" if data[:4] == b"\x89PNG" else "image/svg+xml"
+
+    # Fit inside the plate's share of the page; sit a little below the middle.
+    max_w, max_h = float(w.get("plate_width", 0.42)) * width, 0.62 * height
+    pw = min(max_w, max_h * aspect)
+    ph = pw / aspect
+    margin = 0.08 * width
+    place = w.get("plate_place", "right")
+    x = {"left": margin, "center": (width - pw) / 2}.get(place, width - margin - pw)
+    y = 0.53 * height - ph / 2
+
+    r, g, b = (number(c) for c in rgb01(t["plate_line"]))
+    out = [
+        '<filter id="ink" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB">',
+        '<feFlood flood-color="#ffffff" result="white"/>',
+        '<feMerge result="flat"><feMergeNode in="white"/><feMergeNode in="SourceGraphic"/></feMerge>',
+        # color = plate line; alpha = how dark the drawing is there
+        f'<feColorMatrix in="flat" type="matrix" values="0 0 0 0 {r}  0 0 0 0 {g}  0 0 0 0 {b}  '
+        '-0.2126 -0.7152 -0.0722 0 1"/>',
+        '</filter>',
+        f'<image x="{x:.1f}" y="{y:.1f}" width="{pw:.1f}" height="{ph:.1f}" preserveAspectRatio="none" '
+        f'filter="url(#ink)" href="data:{mime};base64,{base64.b64encode(data).decode()}"/>',
+    ]
+    caption = str(w.get("plate_caption", "")).strip()
+    if caption:
+        size_px = 13 * float(scale)
+        anchor, cx = {"left": ("start", x), "center": ("middle", x + pw / 2)}.get(place, ("end", x + pw))
+        out.append(
+            f'<text x="{cx:.1f}" y="{y + ph + 2.4 * size_px:.1f}" text-anchor="{anchor}" '
+            f'font-family="{html.escape(tokens["font"]["serif"])}" font-style="italic" '
+            f'font-size="{size_px:.1f}" fill="{t["muted"]}">{html.escape(caption)}</text>')
+    return out
+
+
+def grain_parts(tokens, theme, width, height, scale):
+    """Paper grain: fine fractal noise in the text color, a few percent strong.
+    Specks about one logical pixel across at any scale; half the noise shows."""
+    t = tokens["theme"][theme]
+    w = tokens["wallpaper"]
+    grain = float(w.get("grain", 0))
+    if grain <= 0:
+        return []
+    r, g, b = rgb01(t["text"])
+    freq = number(0.9 / max(1.0, float(scale)))
+    return [
+        '<filter id="grain" x="0" y="0" width="100%" height="100%" '
+        'color-interpolation-filters="sRGB">',
+        f'<feTurbulence type="fractalNoise" baseFrequency="{freq}" numOctaves="2" '
+        f'seed="{int(w["seed"])}" stitchTiles="stitch"/>',
+        # alpha = 2 * grain * (noise - 0.5), clamped at 0
+        f'<feColorMatrix type="matrix" values="0 0 0 0 {number(r)}  0 0 0 0 {number(g)}  '
+        f'0 0 0 0 {number(b)}  {number(2 * grain)} 0 0 0 {number(-grain)}"/>',
+        '</filter>',
+        f'<rect width="{width}" height="{height}" filter="url(#grain)"/>',
+    ]
+
+
+def wallpaper_svg(tokens, theme, width, height, scale=1.0):
+    """The desk: paper, then a drawing (your plate, or the contours), then the grain over both."""
+    t = tokens["theme"][theme]
+    out = [
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
+        f'viewBox="0 0 {width} {height}">',
+        f'<rect width="{width}" height="{height}" fill="{t["wallpaper"]}"/>',
+    ]
+    plate = plate_path(tokens)
+    if plate:
+        out += plate_parts(tokens, theme, plate, width, height, scale)
+    else:
+        out += contour_parts(tokens, theme, width, height, scale)
+    out += grain_parts(tokens, theme, width, height, scale)
+    out += ["</svg>", ""]
+    return "\n".join(out)
+
+
+def niri_outputs():
+    """(name, width, height, scale) in physical pixels for each enabled output."""
+    if shutil.which("niri") is None:
+        return []
+    try:
+        res = subprocess.run(["niri", "msg", "--json", "outputs"], capture_output=True,
+                             text=True, timeout=3)
+        data = json.loads(res.stdout)
+    except (OSError, subprocess.SubprocessError, json.JSONDecodeError):
+        return []
+    found = []
+    for name, output in (data.items() if isinstance(data, dict) else []):
+        logical = output.get("logical") or {}
+        w, h, s = logical.get("width"), logical.get("height"), logical.get("scale") or 1.0
+        if w and h:
+            found.append((name, round(w * s), round(h * s), float(s)))
+    return found
+
+
+def cached_wallpaper(tokens, theme, width, height, scale):
+    t = tokens["theme"][theme]
+    plate = plate_path(tokens)
+    drawing = hashlib.sha1(plate.read_bytes()).hexdigest() if plate else None
+    key = json.dumps([tokens["wallpaper"], t["wallpaper"], t["contour"], t["plate_line"], t["text"],
+                      t["muted"], tokens["font"]["serif"], drawing, width, height, scale], sort_keys=True)
+    stem = f"{theme}-{width}x{height}-{hashlib.sha1(key.encode()).hexdigest()[:8]}"
+    svg = CACHE / f"{stem}.svg"
+    if not svg.exists():
+        write(svg, wallpaper_svg(tokens, theme, width, height, scale))
+    png = CACHE / f"{stem}.png"
+    if png.exists():
+        return png
+    if quiet(["rsvg-convert", "-o", str(png), str(svg)], timeout=30) and png.exists():
+        return png
+    return None   # swaybg cannot read SVG; the caller falls back to a plain color
+
+
+WEEKDAYS = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+MONTHS = ("January", "February", "March", "April", "May", "June", "July",
+          "August", "September", "October", "November", "December")
+
+
+def lock_image(tokens, theme, width, height, scale):
+    """The desk with the day set on it, like a book's title page. Made once a day."""
+    base = cached_wallpaper(tokens, theme, width, height, scale)
+    if base is None:
+        return None
+    now = time.localtime()
+    t, f, k = tokens["theme"][theme], tokens["font"], float(scale)
+    key = json.dumps([base.name, f["serif"], f["serif_display"], t["text"], t["muted"]])
+    stem = f"lock-{base.stem}-{time.strftime('%Y%m%d', now)}-{hashlib.sha1(key.encode()).hexdigest()[:6]}"
+    png = CACHE / f"{stem}.png"
+    if png.exists():
+        return png
+    for old in CACHE.glob(f"lock-{base.stem}-*"):   # earlier days
+        old.unlink()
+    x, y = 0.08 * width, 0.26 * height
+    serif = html.escape(f"'{f['serif']}'")
+    display = html.escape(f"'{f['serif_display']}', '{f['serif']}'")
+    svg = "\n".join([
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
+        f'viewBox="0 0 {width} {height}">',
+        # Next to this file in the cache, so librsvg may read it.
+        f'<image x="0" y="0" width="{width}" height="{height}" href="{base.name}"/>',
+        f'<text x="{x:.1f}" y="{y:.1f}" font-family="{serif}" font-style="italic" '
+        f'font-size="{20 * k:.1f}" fill="{t["muted"]}">{WEEKDAYS[now.tm_wday]}</text>',
+        f'<text x="{x - 3 * k:.1f}" y="{y + 76 * k:.1f}" font-family="{display}" '
+        f'font-size="{64 * k:.1f}" fill="{t["text"]}">{MONTHS[now.tm_mon - 1]} {now.tm_mday}</text>',
+        "</svg>", ""])
+    path = CACHE / f"{stem}.svg"
+    write(path, svg)
+    if quiet(["rsvg-convert", "-o", str(png), str(path)], timeout=30) and png.exists():
+        return png
+    return base
+
+
+def set_wallpaper(tokens, theme):
+    if shutil.which("swaybg") is None:
+        return
+    color = tokens["theme"][theme]["wallpaper"]
+    cmd = ["swaybg"]
+    for name, w, h, s in niri_outputs() or [(None, 3840, 2160, 2.0)]:
+        image = cached_wallpaper(tokens, theme, w, h, s)
+        if name:
+            cmd += ["-o", name]
+        cmd += ["-i", str(image), "-m", "fill"] if image else ["-c", color, "-m", "solid_color"]
+
+    old = []
+    if shutil.which("pgrep"):
+        res = subprocess.run(["pgrep", "-x", "swaybg"], capture_output=True, text=True)
+        old = [int(pid) for pid in res.stdout.split() if pid.isdigit()]
+    subprocess.Popen(cmd, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                     stderr=subprocess.DEVNULL, start_new_session=True)
+    time.sleep(0.4)   # let the new wallpaper map before the old one goes away
+    for pid in old:
+        try:
+            os.kill(pid, signal.SIGTERM)
+        except OSError:
+            pass
+    # Set today's title page now, so locking never waits for it.
+    for name, w, h, s in niri_outputs():
+        lock_image(tokens, theme, w, h, s)
+
+
+def cmd_wallpaper(args):
+    tokens = load_tokens(args.tokens)
+    theme = args.theme or current_theme() or tokens["meta"]["default_theme"]
+    svg = wallpaper_svg(tokens, theme, args.width, args.height, args.scale)
+    if args.output == "-":
+        sys.stdout.write(svg)
+    else:
+        write(Path(args.output), svg)
+        print(f"Wrote {args.output}")
+
+
+# ── session ───────────────────────────────────────────────────────────────
+
+def cmd_session_start(args):
+    tokens = load_tokens(args.tokens)
+    theme = current_theme() or tokens["meta"]["default_theme"]
+    if read_mode() == "auto" and (DATA / theme_for_now(tokens)).is_dir():
+        theme = theme_for_now(tokens)
+        set_current(theme)
+    apply_gsettings(tokens, theme)
+    set_wallpaper(tokens, theme)
+    # foot's server starts with the theme named in foot.ini; bring it to the current one.
+    sig = "-USR2" if tokens["theme"][theme]["scheme"] == "light" else "-USR1"
+    for _ in range(20):
+        if quiet(["pgrep", "-x", "foot"]):
+            quiet(["pkill", sig, "-x", "foot"])
+            break
+        time.sleep(0.25)
+
+
+def cmd_lock(args):
+    tokens = load_tokens(args.tokens)
+    t = tokens["theme"][current_theme() or tokens["meta"]["default_theme"]]
+
+    def c(key):
+        return t[key].lstrip("#")[:6]
+
+    if shutil.which("swaylock") is None:
+        raise Failure("swaylock is not installed")
+    # The desk's own wallpaper with the day set on it like a title page, so
+    # locking feels like closing the book, not going somewhere else.
+    # A plain color where there is no image.
+    theme = current_theme() or tokens["meta"]["default_theme"]
+    images = []
+    for name, w, h, s in niri_outputs():
+        image = lock_image(tokens, theme, w, h, s)
+        if image:
+            images += ["--image", f"{name}:{image}"]
+    if images:
+        images += ["--scaling", "fill"]
+    # swaylock 1.8 runs as two processes: the locker and a small child that checks the password.
+    os.execvp("swaylock", [
+        "swaylock", "--daemonize", "--ignore-empty-password",
+        "--color", c("wallpaper"), *images,
+        "--font", tokens["font"]["sans"],
+        "--indicator-radius", "64", "--indicator-thickness", "2",
+        "--inside-color", c("base"), "--ring-color", c("line"),
+        "--line-color", c("line"), "--separator-color", "00000000",
+        "--key-hl-color", c("accent"), "--bs-hl-color", c("muted"),
+        "--text-color", c("text"),
+        "--inside-ver-color", c("base"), "--ring-ver-color", c("accent"),
+        "--text-ver-color", c("text"),
+        "--inside-wrong-color", c("base"), "--ring-wrong-color", c("danger"),
+        "--text-wrong-color", c("danger"),
+        "--inside-clear-color", c("base"), "--ring-clear-color", c("line"),
+        "--text-clear-color", c("muted"),
+    ])
+
+
+# ── command line ──────────────────────────────────────────────────────────
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(prog="liubai-theme", description=__doc__,
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--tokens", type=Path, default=default_tokens_path(),
+                        help="design tokens file (default: %(default)s)")
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    p = sub.add_parser("build", help="render templates for every theme")
+    p.add_argument("--out", default=str(REPO / "build"), help="output directory (default: %(default)s)")
+    p.set_defaults(func=cmd_build)
+
+    p = sub.add_parser("install", help="copy a build into place and link app configs")
+    p.add_argument("--build", default=str(REPO / "build"), help="build directory (default: %(default)s)")
+    p.add_argument("--dry-run", action="store_true", help="print what would change, change nothing")
+    p.set_defaults(func=cmd_install)
+
+    p = sub.add_parser("switch", help="make a theme current, or follow the time of day")
+    p.add_argument("theme", choices=THEMES + ("auto",))
+    p.set_defaults(func=cmd_switch)
+
+    sub.add_parser("toggle", help="switch to the other theme").set_defaults(func=cmd_toggle)
+    sub.add_parser("status", help="show the current theme").set_defaults(func=cmd_status)
+
+    p = sub.add_parser("wallpaper", help="write the wallpaper (contours, or your plate) as SVG")
+    p.add_argument("--theme", choices=THEMES)
+    p.add_argument("--width", type=int, default=3840)
+    p.add_argument("--height", type=int, default=2160)
+    p.add_argument("--scale", type=float, default=2.0, help="output scale; sets the line width")
+    p.add_argument("-o", "--output", default="-", help="file to write, or - for stdout")
+    p.set_defaults(func=cmd_wallpaper)
+
+    sub.add_parser("session-start", help="login hook: wallpaper and color scheme").set_defaults(
+        func=cmd_session_start)
+    sub.add_parser("lock", help="lock the screen in the current theme").set_defaults(func=cmd_lock)
+
+    args = parser.parse_args(argv)
+    try:
+        args.func(args)
+    except Failure as e:
+        print(f"liubai-theme: {e}", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

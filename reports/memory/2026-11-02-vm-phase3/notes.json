@@ -1,0 +1,204 @@
+{
+  "label": "phase3 three notes",
+  "time": "2026-11-02T15:06:42+0000",
+  "kernel": "7.2.14-arch1-1",
+  "niri": "niri 26.04 (8ed0da4)",
+  "gsk_renderer": null,
+  "desktop_pss_kib": 140504,
+  "processes": [
+    {
+      "pid": 1396,
+      "name": "gnome-text-edit",
+      "cmdline": "gnome-text-editor /home/arch/Documents/monday-notes.md",
+      "pss_kib": 68047,
+      "rss_kib": 118536,
+      "uss_kib": 44004
+    },
+    {
+      "pid": 1230,
+      "name": "niri",
+      "cmdline": "niri --session",
+      "pss_kib": 67112,
+      "rss_kib": 101596,
+      "uss_kib": 47940
+    },
+    {
+      "pid": 2680,
+      "name": "liubai-shell",
+      "cmdline": "/home/arch/.local/share/liubai/bin/liubai-shell",
+      "pss_kib": 20472,
+      "rss_kib": 52660,
+      "uss_kib": 9944
+    },
+    {
+      "pid": 1305,
+      "name": "xdg-desktop-por",
+      "cmdline": "/usr/lib/xdg-desktop-portal-gtk",
+      "pss_kib": 15160,
+      "rss_kib": 28280,
+      "uss_kib": 12812
+    },
+    {
+      "pid": 2760,
+      "name": "python3",
+      "cmdline": "python3 /home/arch/liubai/tools/measure-memory --label phase3 three notes --json /home/arch/liubai/reports/memory/2026-11-02-vm-phase3/notes.json",
+      "pss_kib": 13696,
+      "rss_kib": 16556,
+      "uss_kib": 13552
+    },
+    {
+      "pid": 1345,
+      "name": "wireplumber",
+      "cmdline": "/usr/bin/wireplumber",
+      "pss_kib": 11257,
+      "rss_kib": 20604,
+      "uss_kib": 9424
+    },
+    {
+      "pid": 1263,
+      "name": "foot",
+      "cmdline": "foot --server",
+      "pss_kib": 7471,
+      "rss_kib": 17072,
+      "uss_kib": 3936
+    },
+    {
+      "pid": 1277,
+      "name": "xdg-desktop-por",
+      "cmdline": "/usr/lib/xdg-desktop-portal",
+      "pss_kib": 6140,
+      "rss_kib": 16692,
+      "uss_kib": 4004
+    },
+    {
+      "pid": 1813,
+      "name": "swaybg",
+      "cmdline": "swaybg -o Virtual-1 -i /home/arch/.cache/liubai/ink-1440x900-456a7315.png -m fill",
+      "pss_kib": 5891,
+      "rss_kib": 14692,
+      "uss_kib": 4804
+    },
+    {
+      "pid": 1344,
+      "name": "pipewire",
+      "cmdline": "/usr/bin/pipewire",
+      "pss_kib": 4779,
+      "rss_kib": 10392,
+      "uss_kib": 3436
+    },
+    {
+      "pid": 1293,
+      "name": "xdg-document-po",
+      "cmdline": "/usr/lib/xdg-document-portal",
+      "pss_kib": 1538,
+      "rss_kib": 7244,
+      "uss_kib": 1180
+    },
+    {
+      "pid": 1429,
+      "name": "bash",
+      "cmdline": "/usr/bin/bash",
+      "pss_kib": 1513,
+      "rss_kib": 4536,
+      "uss_kib": 944
+    },
+    {
+      "pid": 1338,
+      "name": "at-spi2-registr",
+      "cmdline": "/usr/lib/at-spi2-registryd --use-gnome-session",
+      "pss_kib": 1302,
+      "rss_kib": 7384,
+      "uss_kib": 752
+    },
+    {
+      "pid": 1229,
+      "name": "systemctl",
+      "cmdline": "systemctl --user --wait start niri.service",
+      "pss_kib": 1230,
+      "rss_kib": 5980,
+      "uss_kib": 952
+    },
+    {
+      "pid": 1268,
+      "name": "at-spi-bus-laun",
+      "cmdline": "/usr/lib/at-spi-bus-launcher",
+      "pss_kib": 1166,
+      "rss_kib": 7672,
+      "uss_kib": 688
+    },
+    {
+      "pid": 1282,
+      "name": "xdg-permission-",
+      "cmdline": "/usr/lib/xdg-permission-store",
+      "pss_kib": 926,
+      "rss_kib": 6508,
+      "uss_kib": 600
+    },
+    {
+      "pid": 1288,
+      "name": "dconf-service",
+      "cmdline": "/usr/lib/dconf-service",
+      "pss_kib": 915,
+      "rss_kib": 6384,
+      "uss_kib": 588
+    },
+    {
+      "pid": 1195,
+      "name": "niri-session",
+      "cmdline": "/bin/sh /usr/bin/niri-session -l",
+      "pss_kib": 885,
+      "rss_kib": 3780,
+      "uss_kib": 328
+    },
+    {
+      "pid": 2660,
+      "name": "bash",
+      "cmdline": "bash -c I=~/bin/insession; S=~/.local/share/liubai/bin/liubai-shell; M=~/liubai/tools/measure-memory; O=~/liubai/reports/memory/2026-11-02-vm-phase3; mkdir -p $O; pss() { awk \"/^Pss:/{printf \\\"%.1f Mi",
+      "pss_kib": 845,
+      "rss_kib": 3536,
+      "uss_kib": 316
+    },
+    {
+      "pid": 1162,
+      "name": "dbus-broker",
+      "cmdline": "dbus-broker --log 11 --controller 10 --machine-id 9642419978b549618a60ff3382890764 --max-bytes 100000000000000 --max-fds 25000000000000 --max-matches 5000000000",
+      "pss_kib": 741,
+      "rss_kib": 3148,
+      "uss_kib": 608
+    },
+    {
+      "pid": 1161,
+      "name": "dbus-broker-lau",
+      "cmdline": "/usr/bin/dbus-broker-launch --scope user",
+      "pss_kib": 590,
+      "rss_kib": 3700,
+      "uss_kib": 316
+    },
+    {
+      "pid": 1320,
+      "name": "dbus-broker-lau",
+      "cmdline": "/usr/bin/dbus-broker-launch --config-file=/usr/share/defaults/at-spi2/accessibility.conf --scope user",
+      "pss_kib": 533,
+      "rss_kib": 3604,
+      "uss_kib": 276
+    },
+    {
+      "pid": 1321,
+      "name": "dbus-broker",
+      "cmdline": "dbus-broker --log 10 --controller 9 --machine-id 9642419978b549618a60ff3382890764 --max-bytes 100000000000000 --max-fds 6400000 --max-matches 5000000000",
+      "pss_kib": 358,
+      "rss_kib": 2828,
+      "uss_kib": 220
+    },
+    {
+      "pid": 1428,
+      "name": "footclient",
+      "cmdline": "footclient -D /home/arch/liubai",
+      "pss_kib": 160,
+      "rss_kib": 1812,
+      "uss_kib": 128
+    }
+  ],
+  "mem_total_kib": 3034612,
+  "mem_available_kib": 2522868
+}

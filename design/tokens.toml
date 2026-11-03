@@ -1,0 +1,205 @@
+# Liubai design tokens (draft)
+# Single source for color, type, shape and motion.
+# tools/liubai-theme reads this file and renders templates/ into each app's config.
+# Rationale: docs/DESIGN-LANGUAGE.md. Contrast ratios are WCAG 2.x.
+
+[meta]
+version = "0.1.0-draft"
+default_theme = "paper"   # paper | ink; "liubai-theme switch auto" follows the [auto] times
+
+# ── Paper (light) ─────────────────────────
+[theme.paper]
+scheme      = "light"     # what apps call this theme
+wallpaper   = "#F0EEE6"
+base        = "#FAF9F5"
+raised      = "#F0EEE6"
+line        = "#E3E0D6"
+text        = "#141413"  # 17.5:1 on base
+muted       = "#6B6A65"  # 5.14:1 on base
+accent      = "#D97757"  # 2.96:1 on base: marks only, never text
+accent_text = "#B4532E"  # 4.73:1 on base
+accent_fg   = "#141413"  # text on an accent fill: 5.9:1 (base on accent fails at 2.96)
+success     = "#5C6E45"  # 5.29:1 on base
+success_fg  = "#FAF9F5"  # 5.29:1 on success
+warning     = "#8A6414"  # 5.09:1 on base
+warning_fg  = "#FAF9F5"  # 5.09:1 on warning
+danger      = "#B03A2E"  # 5.71:1 on base
+danger_fg   = "#FAF9F5"  # 5.71:1 on danger
+info        = "#3F6E9C"  # 5.08:1 on base
+backdrop    = "#E6E3DA"  # behind workspaces in the overview, decorative
+contour     = "#DCD7CA"  # wallpaper line art, decorative
+plate_line  = "#A29C8F"  # a plate (your line drawing) printed on the desk, decorative
+quiet       = "#CFCABE"  # inactive marks: other workspaces, off-screen columns
+mark        = "#8A8880"  # visible but unfocused marks (3.4:1, a shape, not text)
+selection   = "#F3DFD5"  # 20% clay over base; text on it 14.3:1
+cursor      = "#B4532E"  # deeper clay: plain clay is 2.94:1 on paper, below the 3:1 for UI parts
+cursor_text = "#FAF9F5"
+shadow      = "#14141314" # 8% ink: windows at rest, cards
+shadow_lift = "#1414131F" # 12% ink: the active window, Today, Search
+shadow_near = "#1414130F" # 6% ink: the tight contact line under panels and cards
+veil        = "#FAF9F5"   # Today's page laid over the desk: opaque, so nothing shows through
+terminal_alpha = 0.90
+
+# ANSI colors. Ratios measured on the terminal's effective background (#F9F8F4).
+[theme.paper.ansi]
+black          = "#2B2A27"  # 13.5
+red            = "#B03A2E"  # 5.66
+green          = "#4F6B3A"  # 5.65
+yellow         = "#8A6414"  # 5.05
+blue           = "#3B6A99"  # 5.33
+magenta        = "#8A4D78"  # 5.79
+cyan           = "#2C716D"  # 5.36
+white          = "#6B6A65"  # 5.10
+bright_black   = "#7A7871"  # 4.16, dim on purpose (suggestions, comments)
+bright_red     = "#C0442F"  # 4.81
+bright_green   = "#557542"  # 4.93
+bright_yellow  = "#946B12"  # 4.52
+bright_blue    = "#41709F"  # 4.89
+bright_magenta = "#955282"  # 5.19
+bright_cyan    = "#2F7873"  # 4.87
+bright_white   = "#8A8880"  # 3.34, dim on purpose
+
+# ── Ink (dark) ────────────────────────────
+[theme.ink]
+scheme      = "dark"
+wallpaper   = "#171615"
+base        = "#1F1E1D"
+raised      = "#2A2927"
+line        = "#3A3936"
+text        = "#ECEAE2"  # 13.8:1 on base
+muted       = "#A3A199"  # 6.43:1 on base
+accent      = "#D97757"  # 5.33:1 on base, 4.66:1 on raised
+accent_text = "#D97757"
+accent_fg   = "#141413"  # 5.9:1 on accent
+success     = "#8FA373"  # 6.1:1 on base
+success_fg  = "#141413"  # 6.72:1 on success
+warning     = "#D6A657"  # 7.49:1 on base
+warning_fg  = "#141413"  # 8.3:1 on warning
+danger      = "#E0715F"  # 5.31:1 on base
+danger_fg   = "#141413"  # 5.88:1 on danger
+info        = "#6A9BCC"  # 5.69:1 on base
+backdrop    = "#121110"  # behind workspaces in the overview, decorative
+contour     = "#2B2A27"  # wallpaper line art, decorative
+plate_line  = "#5A5751"  # a plate printed on the desk, decorative
+quiet       = "#4A4844"  # inactive marks: other workspaces, off-screen columns
+mark        = "#A3A199"  # visible but unfocused marks
+selection   = "#53372D"  # 28% clay over base; text on it 8.9:1
+cursor      = "#D97757"  # 5.39:1 on the terminal background
+cursor_text = "#1F1E1D"
+shadow      = "#0000004D" # 30% black
+shadow_lift = "#00000073" # 45% black
+shadow_near = "#00000040" # 25% black
+veil        = "#1F1E1D"   # opaque
+terminal_alpha = 0.86
+
+# ANSI colors. Ratios measured on the terminal's effective background (#1E1D1C).
+[theme.ink.ansi]
+black          = "#3A3936"  # 1.46, used as a fill, not as text
+red            = "#E0715F"  # 5.37
+green          = "#8FA373"  # 6.13
+yellow         = "#D6A657"  # 7.57
+blue           = "#6A9BCC"  # 5.75
+magenta        = "#C48AB4"  # 6.12
+cyan           = "#6FB0A8"  # 6.77
+white          = "#CFCCC2"  # 10.5
+bright_black   = "#8A8880"  # 4.74
+bright_red     = "#EC8573"  # 6.55
+bright_green   = "#A3B888"  # 7.83
+bright_yellow  = "#E3B86C"  # 9.09
+bright_blue    = "#85AFDB"  # 7.34
+bright_magenta = "#D29FC4"  # 7.61
+bright_cyan    = "#85C2BA"  # 8.35
+bright_white   = "#ECEAE2"  # 14.0
+
+# ── Type ──────────────────────────────────
+# Other scripts are rendered through a separate fallback layer (not defined here).
+[font]
+serif = "Source Serif 4"   # clock, dates, panel titles, Today
+# Optical sizes of the same face: drawn for their size, falling back to `serif`.
+serif_small   = "Source Serif 4 SmText"    # under 16 px: the bar's clock and workspace name
+serif_display = "Source Serif 4 Display"   # 40 px and up: Today's date
+sans  = "Inter"            # interface text
+mono  = "IBM Plex Mono"    # terminal
+scale = [12, 13, 15, 18, 24, 40]   # logical px, for the shell
+tabular_numbers = true
+
+# Point sizes for apps that take fontconfig or Pango sizes (1 pt = 4/3 px at scale 1).
+[font.pt]
+ui           = 10.5   # ~14 px
+terminal     = 10.5
+launcher     = 12
+notification = 10.5
+
+# ── Shape and space (logical px) ──────────
+[shape]
+radius_window = 6
+radius_panel  = 3
+radius_small  = 2
+hairline      = 1
+rubric        = 2     # the clay rule down the edge of an urgent note
+icon_stroke   = 1.5   # the shell's hand-drawn line icons (close, chevron)
+focus_ring    = 1
+gap           = 14
+bar_height    = 32
+bar_padding   = 16
+terminal_pad  = 18
+
+# Three depths, in logical px like CSS box-shadow (softness = blur radius).
+# Windows rest on the desk; the active window and Today are lifted a little;
+# small cards (notifications, OSD, menus) float close above what they cover.
+[shadow]
+softness      = 20   # windows at rest
+spread        = 0
+offset_y      = 3
+lift_softness = 40   # the active window, Today, Search
+lift_offset_y = 10
+card_softness = 18   # notifications, OSD, menus
+card_offset_y = 6
+
+# ── Motion ────────────────────────────────
+# Opening and closing use easing. Movement that a gesture can drive uses a
+# critically damped spring (damping 1.0): it follows the finger and never overshoots.
+[motion]
+duration_short   = 160   # closing
+duration_long    = 240   # opening
+duration_hover   = 120   # hover and press feedback
+easing           = "ease-out-cubic"
+travel           = 6     # px a panel moves as it opens, from where it comes from (0 = fade only)
+travel_side      = 6     # px a notification moves as it appears: a slip laid down, not a toast
+window_lift      = 0.02  # a new window starts this much larger and settles to its size
+spring_damping   = 1.0
+spring_stiffness = 800
+spring_epsilon   = 0.0001
+reduce_motion_fallback = "fade"
+
+# ── Terminal ──────────────────────────────
+[terminal]
+blur = false   # niri 26.04 supports ext-background-effect; off keeps the specimen look and saves GPU memory
+
+# ── Wallpaper ─────────────────────────────
+[wallpaper]
+seed  = 7
+lines = 12
+band_top    = 0.52   # first line, as a fraction of screen height
+spacing     = 0.031  # distance between lines, fraction of height
+grain       = 0.04   # paper grain: strongest speck, as opacity of the text color (0 = none)
+
+# A plate: a line drawing of your own instead of the contours, printed on the
+# desk like an illustration in a book. Dark lines on a light ground (SVG or PNG);
+# it is recolored to the theme (plate_line), so it works in Paper and Ink.
+# A relative path is found next to this file, e.g. "plates/wave.svg" -> design/plates/.
+plate         = ""        # "" = the contours
+plate_place   = "right"   # left | center | right
+plate_width   = 0.42      # the most of the screen's width it may take
+plate_caption = ""        # set in italic under it, e.g. "Fig. 1 — The Great Wave, after Hokusai"
+
+# ── Auto theme ────────────────────────────
+# "Auto" mode uses Paper from paper_from until ink_from, Ink the rest of the day.
+[auto]
+paper_from = "07:00"
+ink_from   = "19:00"
+
+# ── Session ───────────────────────────────
+[session]
+lock_after_seconds       = 600   # idle time before the screen locks
+screen_off_after_seconds = 900   # idle time before the displays turn off

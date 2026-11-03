@@ -1,0 +1,130 @@
+#!/usr/bin/env python3
+"""measure-memory: what each of your processes costs, read from /proc.
+
+Run it inside the session you want to measure. It lists every process you own
+with PSS (shared pages split fairly), RSS (all resident pages) and USS (pages
+only that process uses), then totals for the desktop itself.
+
+  measure-memory                      print a table
+  measure-memory --label idle --json reports/memory/2026-11-02-idle.json
+
+PSS is the number to compare. RSS counts shared libraries once per process,
+so it overstates; USS is what you would get back by quitting the process.
+"""
+
+import argparse
+import json
+import os
+import platform
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+# The desktop itself: what Liubai starts, not what the user opens.
+DESKTOP = {"niri", "liubai-shell", "foot", "mako", "swaybg", "xwayland-satell",
+           "systemd", "dbus-broker", "dbus-broker-lau", "dbus-daemon",
+           "pipewire", "wireplumber", "pipewire-pulse", "xdg-desktop-por",
+           "swayidle", "polkit-gnome-au", "pactl"}
+
+
+def read_kb(path, keys):
+    out = dict.fromkeys(keys, 0)
+    try:
+        with open(path) as f:
+            for line in f:
+                name, _, rest = line.partition(":")
+                if name in out:
+                    out[name] = int(rest.split()[0])
+    except OSError:
+        return None
+    return out
+
+
+def processes():
+    me = os.getuid()
+    for entry in Path("/proc").iterdir():
+        if not entry.name.isdigit():
+            continue
+        try:
+            if entry.stat().st_uid != me:
+                continue
+            comm = (entry / "comm").read_text().strip()
+            cmdline = (entry / "cmdline").read_bytes().replace(b"\0", b" ").decode(errors="replace").strip()
+        except OSError:
+            continue
+        mem = read_kb(entry / "smaps_rollup", ("Rss", "Pss", "Private_Clean", "Private_Dirty"))
+        if not mem:
+            continue
+        yield {
+            "pid": int(entry.name),
+            "name": comm,
+            "cmdline": cmdline[:200],
+            "pss_kib": mem["Pss"],
+            "rss_kib": mem["Rss"],
+            "uss_kib": mem["Private_Clean"] + mem["Private_Dirty"],
+        }
+
+
+def env_of(pid, key):
+    try:
+        for item in Path(f"/proc/{pid}/environ").read_bytes().split(b"\0"):
+            k, _, v = item.partition(b"=")
+            if k.decode(errors="replace") == key:
+                return v.decode(errors="replace")
+    except OSError:
+        pass
+    return None
+
+
+def version(cmd):
+    try:
+        return subprocess.run(cmd, capture_output=True, text=True, timeout=3).stdout.strip().splitlines()[0]
+    except (OSError, subprocess.SubprocessError, IndexError):
+        return None
+
+
+def mib(kib):
+    return f"{kib / 1024:.1f}"
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--label", default="", help="what state the session was in, e.g. idle or today-open")
+    parser.add_argument("--json", type=Path, help="also save the raw numbers here")
+    args = parser.parse_args()
+
+    procs = sorted(processes(), key=lambda p: p["pss_kib"], reverse=True)
+    desktop = [p for p in procs if p["name"] in DESKTOP]
+    shell = next((p for p in procs if p["name"] == "liubai-shell"), None)
+
+    report = {
+        "label": args.label,
+        "time": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+        "kernel": platform.release(),
+        "niri": version(["niri", "--version"]),
+        "gsk_renderer": env_of(shell["pid"], "GSK_RENDERER") if shell else None,
+        "desktop_pss_kib": sum(p["pss_kib"] for p in desktop),
+        "processes": procs,
+    }
+    meminfo = read_kb("/proc/meminfo", ("MemTotal", "MemAvailable"))
+    if meminfo:
+        report["mem_total_kib"] = meminfo["MemTotal"]
+        report["mem_available_kib"] = meminfo["MemAvailable"]
+
+    print(f"{'process':<18} {'pid':>7} {'PSS MiB':>8} {'RSS MiB':>8} {'USS MiB':>8}")
+    for p in procs:
+        mark = "*" if p["name"] in DESKTOP else " "
+        print(f"{mark}{p['name']:<17} {p['pid']:>7} {mib(p['pss_kib']):>8} {mib(p['rss_kib']):>8} {mib(p['uss_kib']):>8}")
+    print(f"\n* desktop total: {mib(report['desktop_pss_kib'])} MiB PSS"
+          + (f" · GSK_RENDERER={report['gsk_renderer']}" if report["gsk_renderer"] else ""))
+
+    if args.json:
+        args.json.parent.mkdir(parents=True, exist_ok=True)
+        args.json.write_text(json.dumps(report, indent=2) + "\n")
+        print(f"saved {args.json}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

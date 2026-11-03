@@ -1,0 +1,21 @@
+[package]
+name = "liubai-shell"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.92"
+description = "Liubai's desktop shell: bar and Today page for niri"
+publish = false
+
+[dependencies]
+gtk = { package = "gtk4", version = "0.11", features = ["v4_10"] }
+gtk4-layer-shell = "0.8"
+serde_json = "1"
+libc = "0.2"   # already in the tree through glib; used for prctl and malloc_trim
+
+[profile.release]
+# Smaller code means fewer resident pages; the shell is never CPU-bound.
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

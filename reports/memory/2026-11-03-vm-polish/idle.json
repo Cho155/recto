@@ -1,0 +1,260 @@
+{
+  "label": "idle: bar only, one terminal, 60 s after start",
+  "time": "2026-11-03T03:10:44+0000",
+  "kernel": "7.2.14-arch1-1",
+  "niri": "niri 26.04 (8ed0da4)",
+  "gsk_renderer": null,
+  "desktop_pss_kib": 173970,
+  "processes": [
+    {
+      "pid": 4554,
+      "name": "niri",
+      "cmdline": "niri --session",
+      "pss_kib": 79874,
+      "rss_kib": 100328,
+      "uss_kib": 75076
+    },
+    {
+      "pid": 5906,
+      "name": "liubai-shell",
+      "cmdline": "/home/arch/.local/share/liubai/bin/liubai-shell",
+      "pss_kib": 25209,
+      "rss_kib": 52304,
+      "uss_kib": 19772
+    },
+    {
+      "pid": 4586,
+      "name": "fcitx5",
+      "cmdline": "/usr/bin/fcitx5",
+      "pss_kib": 23021,
+      "rss_kib": 41612,
+      "uss_kib": 19784
+    },
+    {
+      "pid": 4597,
+      "name": "nm-applet",
+      "cmdline": "/usr/bin/nm-applet",
+      "pss_kib": 21726,
+      "rss_kib": 43948,
+      "uss_kib": 15224
+    },
+    {
+      "pid": 5930,
+      "name": "python3",
+      "cmdline": "python3 /home/arch/liubai/tools/measure-memory --label idle: bar only, one terminal, 60 s after start --json /tmp/mem2/idle.json",
+      "pss_kib": 13685,
+      "rss_kib": 16528,
+      "uss_kib": 13548
+    },
+    {
+      "pid": 586,
+      "name": "wireplumber",
+      "cmdline": "/usr/bin/wireplumber",
+      "pss_kib": 12126,
+      "rss_kib": 21732,
+      "uss_kib": 10332
+    },
+    {
+      "pid": 4645,
+      "name": "xdg-desktop-por",
+      "cmdline": "/usr/lib/xdg-desktop-portal-gtk",
+      "pss_kib": 11644,
+      "rss_kib": 28196,
+      "uss_kib": 8604
+    },
+    {
+      "pid": 4591,
+      "name": "polkit-gnome-au",
+      "cmdline": "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1",
+      "pss_kib": 11538,
+      "rss_kib": 28404,
+      "uss_kib": 8388
+    },
+    {
+      "pid": 4585,
+      "name": "foot",
+      "cmdline": "foot --server",
+      "pss_kib": 8454,
+      "rss_kib": 17004,
+      "uss_kib": 6164
+    },
+    {
+      "pid": 584,
+      "name": "pipewire",
+      "cmdline": "/usr/bin/pipewire",
+      "pss_kib": 7365,
+      "rss_kib": 13248,
+      "uss_kib": 6132
+    },
+    {
+      "pid": 4618,
+      "name": "xdg-desktop-por",
+      "cmdline": "/usr/lib/xdg-desktop-portal",
+      "pss_kib": 5898,
+      "rss_kib": 16596,
+      "uss_kib": 4120
+    },
+    {
+      "pid": 4706,
+      "name": "swaybg",
+      "cmdline": "swaybg -o Virtual-1 -i /home/arch/.cache/liubai/paper-1440x900-d6ceaa2b.png -m fill",
+      "pss_kib": 4130,
+      "rss_kib": 14800,
+      "uss_kib": 1692
+    },
+    {
+      "pid": 635,
+      "name": "pipewire-pulse",
+      "cmdline": "/usr/bin/pipewire-pulse",
+      "pss_kib": 3177,
+      "rss_kib": 9476,
+      "uss_kib": 2576
+    },
+    {
+      "pid": 5927,
+      "name": "pactl",
+      "cmdline": "pactl subscribe",
+      "pss_kib": 2218,
+      "rss_kib": 5136,
+      "uss_kib": 2088
+    },
+    {
+      "pid": 5151,
+      "name": "bash",
+      "cmdline": "/usr/bin/bash",
+      "pss_kib": 1538,
+      "rss_kib": 4536,
+      "uss_kib": 980
+    },
+    {
+      "pid": 4636,
+      "name": "xdg-document-po",
+      "cmdline": "/usr/lib/xdg-document-portal",
+      "pss_kib": 1480,
+      "rss_kib": 7316,
+      "uss_kib": 1208
+    },
+    {
+      "pid": 4553,
+      "name": "systemctl",
+      "cmdline": "systemctl --user --wait start niri.service",
+      "pss_kib": 1210,
+      "rss_kib": 5972,
+      "uss_kib": 944
+    },
+    {
+      "pid": 4602,
+      "name": "at-spi-bus-laun",
+      "cmdline": "/usr/lib/at-spi-bus-launcher",
+      "pss_kib": 1031,
+      "rss_kib": 7432,
+      "uss_kib": 696
+    },
+    {
+      "pid": 4662,
+      "name": "at-spi2-registr",
+      "cmdline": "/usr/lib/at-spi2-registryd --use-gnome-session",
+      "pss_kib": 1011,
+      "rss_kib": 7404,
+      "uss_kib": 648
+    },
+    {
+      "pid": 520,
+      "name": "at-spi2-registr",
+      "cmdline": "/usr/lib/at-spi2-registryd --use-gnome-session",
+      "pss_kib": 1008,
+      "rss_kib": 7300,
+      "uss_kib": 652
+    },
+    {
+      "pid": 2189,
+      "name": "at-spi2-registr",
+      "cmdline": "/usr/lib/at-spi2-registryd --use-gnome-session",
+      "pss_kib": 1003,
+      "rss_kib": 7408,
+      "uss_kib": 636
+    },
+    {
+      "pid": 4216,
+      "name": "at-spi2-registr",
+      "cmdline": "/usr/lib/at-spi2-registryd --use-gnome-session",
+      "pss_kib": 995,
+      "rss_kib": 7360,
+      "uss_kib": 632
+    },
+    {
+      "pid": 421,
+      "name": "dbus-broker",
+      "cmdline": "dbus-broker --log 11 --controller 10 --machine-id 9642419978b549618a60ff3382890764 --max-bytes 100000000000000 --max-fds 25000000000000 --max-matches 5000000000",
+      "pss_kib": 911,
+      "rss_kib": 3372,
+      "uss_kib": 776
+    },
+    {
+      "pid": 4523,
+      "name": "niri-session",
+      "cmdline": "/bin/sh /usr/bin/niri-session -l",
+      "pss_kib": 896,
+      "rss_kib": 3748,
+      "uss_kib": 368
+    },
+    {
+      "pid": 578,
+      "name": "dconf-service",
+      "cmdline": "/usr/lib/dconf-service",
+      "pss_kib": 883,
+      "rss_kib": 6588,
+      "uss_kib": 596
+    },
+    {
+      "pid": 4629,
+      "name": "xdg-permission-",
+      "cmdline": "/usr/lib/xdg-permission-store",
+      "pss_kib": 848,
+      "rss_kib": 6532,
+      "uss_kib": 596
+    },
+    {
+      "pid": 5900,
+      "name": "bash",
+      "cmdline": "bash -c I=~/bin/insession; S=~/.local/share/liubai/bin/liubai-shell; M=~/liubai/tools/measure-memory; R=/tmp/mem2; rm -rf $R; mkdir -p $R; export YDOTOOL_SOCKET=/tmp/.ydotool_socket\nydotool mousemove ",
+      "pss_kib": 796,
+      "rss_kib": 3456,
+      "uss_kib": 288
+    },
+    {
+      "pid": 420,
+      "name": "dbus-broker-lau",
+      "cmdline": "/usr/bin/dbus-broker-launch --scope user",
+      "pss_kib": 537,
+      "rss_kib": 3652,
+      "uss_kib": 308
+    },
+    {
+      "pid": 4620,
+      "name": "dbus-broker-lau",
+      "cmdline": "/usr/bin/dbus-broker-launch --config-file=/usr/share/defaults/at-spi2/accessibility.conf --scope user",
+      "pss_kib": 536,
+      "rss_kib": 3672,
+      "uss_kib": 304
+    },
+    {
+      "pid": 4622,
+      "name": "dbus-broker",
+      "cmdline": "dbus-broker --log 10 --controller 9 --machine-id 9642419978b549618a60ff3382890764 --max-bytes 100000000000000 --max-fds 6400000 --max-matches 5000000000",
+      "pss_kib": 353,
+      "rss_kib": 2848,
+      "uss_kib": 224
+    },
+    {
+      "pid": 5141,
+      "name": "footclient",
+      "cmdline": "footclient",
+      "pss_kib": 152,
+      "rss_kib": 1808,
+      "uss_kib": 124
+    }
+  ],
+  "mem_total_kib": 3034612,
+  "mem_available_kib": 2513676
+}
