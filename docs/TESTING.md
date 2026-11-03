@@ -44,7 +44,7 @@ cd liubai
 
 ## 清单
 
-“结果”一栏填 ✓ 或 ✗，✗ 的写一句看到了什么；能截图最好（`Print` 键，存在 `~/Pictures/Screenshots/`）。
+“结果”一栏填 ✓ 或 ✗，✗ 的写一句看到了什么；能截图最好（`Ctrl+Print` 截整屏，存在 `~/Pictures/Screenshots/`；`Print` 要先框选再按回车）。
 
 ### A. 进入桌面
 
