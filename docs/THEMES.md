@@ -34,6 +34,7 @@ liubai-theme install ──> ~/.local/share/liubai/{shared,paper,ink,bin,tokens.
 | GTK 3 | 经 `current` 链接；同时切换 adw-gtk3 / adw-gtk3-dark | 我们的 CSS 在应用重开后生效 |
 | 外壳 | 经 `current` 读取 `shell/style.css`；动效时长和图标线宽在 `shared/shell/tokens.json` | `liubai-shell reload-style`，实时生效 |
 | kitty / alacritty | 不自动链接，需在各自配置里引用 | kitty 收到 SIGUSR1 重读配置；alacritty 下次重读时生效 |
+| Qt 6（经 qt6ct） | 每个主题一份 qt6ct 配色（`current/qt6ct/liubai.conf`）；共用的 `qt6ct.conf` 设 Fusion 风格、字体和这份配色；niri 配置里设 `QT_QPA_PLATFORMTHEME=qt6ct` | Qt 应用下次启动时用新主题（qt6ct 不支持实时切换） |
 | GtkSourceView（文本编辑器的正文区） | `liubai`（纸）和 `liubai-dark`（墨）两套方案都链接到 `~/.local/share/gtksourceview-{4,5}/styles/`；安装时把 GNOME 文本编辑器设为 `liubai` | 编辑器随系统明暗自动选浅色或深色方案 |
 | 壁纸 | 按每块屏幕的实际分辨率生成 SVG：等高线，或作者的线稿（图版，`design/plates/`，按主题重新上色）；叠上极淡的纸纹，转成 PNG 交给 swaybg；结果缓存在 `~/.cache/liubai/` | 新壁纸显示后再结束旧的 swaybg，避免黑屏闪烁；同时生成当天的锁屏扉页 |
 | 锁屏 | `liubai-theme lock` 用当前主题的颜色和扉页图（壁纸加当天日期）调用 swaylock | 每次锁屏时读取；扉页每天生成一次 |
@@ -63,7 +64,7 @@ tools/liubai-theme wallpaper --width 2560 --height 1600 --scale 1.5 -o wall.svg
 | 外壳编译 | `rust` `gtk4` `gtk4-layer-shell` |
 | 后备 | `mako`（外壳没运行时的通知） `fuzzel` |
 | 字体 | `adobe-source-serif-fonts`（Source Serif 4） `inter-font` `ttf-ibm-plex` |
-| 建议 | `adw-gtk-theme`（让 GTK 3 应用也用上配色） `polkit-gnome`（授权弹窗） `upower` `networkmanager` `fcitx5` `xdg-desktop-portal-gnome` `xdg-desktop-portal-gtk` `xwayland-satellite` `wireplumber` `brightnessctl` `playerctl` |
+| 建议 | `adw-gtk-theme`（让 GTK 3 应用也用上配色） `qt6ct`（让 Qt 6 应用也用上配色） `polkit-gnome`（授权弹窗） `upower` `networkmanager` `fcitx5` `xdg-desktop-portal-gnome` `xdg-desktop-portal-gtk` `xwayland-satellite` `wireplumber` `brightnessctl` `playerctl` |
 
 授权弹窗由 polkit-gnome 提供：装上即可，niri 配置会在登录时自动启动它。
 

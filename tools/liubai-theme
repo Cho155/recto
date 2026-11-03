@@ -58,6 +58,8 @@ TARGETS = [
     ("shell/auto", "shared"),
     ("shell/tokens.json", "shared"),
     ("gtksourceview/liubai.xml", "theme"),
+    ("qt6ct/liubai.conf", "theme"),
+    ("qt6ct/qt6ct.conf", "shared"),
 ]
 
 SHELL_BINARY = REPO / "shell" / "target" / "release" / "liubai-shell"
@@ -71,6 +73,7 @@ LINKS = [
     ("mako/config", "current/mako/config"),
     ("gtk-3.0/gtk.css", "current/gtk-3.0/gtk.css"),
     ("gtk-4.0/gtk.css", "shared/gtk-4.0/gtk.css"),   # follows color-scheme live
+    ("qt6ct/qt6ct.conf", "shared/qt6ct/qt6ct.conf"),   # points at current/qt6ct/liubai.conf
 ]
 
 # The same, for files under ~/.local/share. GtkSourceView pairs a light and a
@@ -145,7 +148,8 @@ def context(tokens, theme=None):
     ctx["paper"] = tokens["theme"]["paper"]
     ctx["ink"] = tokens["theme"]["ink"]
     ctx["default"] = tokens["theme"][tokens["meta"]["default_theme"]]
-    ctx["paths"] = {"data": tilde(DATA), "config": tilde(CONFIG)}
+    # data_abs: for configs that do not expand "~" (qt6ct).
+    ctx["paths"] = {"data": tilde(DATA), "data_abs": str(DATA), "config": tilde(CONFIG)}
     if theme:
         ctx["t"] = tokens["theme"][theme]
         ctx["theme_name"] = theme
@@ -214,6 +218,11 @@ def f_css(v, arg, where):
     return f"rgba({r}, {g}, {b}, {number(a)})"
 
 
+def f_qt(v, arg, where):
+    rgb, a = parse_hex(v, where)
+    return "#" + alpha_byte(a) + rgb
+
+
 def f_if_dark(v, arg, where):
     if v not in ("light", "dark"):
         raise Failure(f"{where}: if_dark needs a scheme (light or dark), got '{v}'")
@@ -250,6 +259,7 @@ FILTERS = {
     "yesno": f_yesno,            # true -> yes
     "css_easing": f_css_easing,  # ease-out-cubic -> cubic-bezier(0.33, 1, 0.68, 1)
     "if_dark": f_if_dark,        # t.scheme | if_dark(-dark) -> "-dark" in Ink, "" in Paper
+    "qt": f_qt,                  # #14141314 -> #14141413 (Qt's #AARRGGBB)
 }
 
 

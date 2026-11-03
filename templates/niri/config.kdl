@@ -143,6 +143,12 @@ layer-rule {
     }
 }
 
+// Qt 6 apps take Liubai's palette and fonts through qt6ct, when it is installed
+// (without it Qt prints a warning and keeps its defaults).
+environment {
+    QT_QPA_PLATFORMTHEME "qt6ct"
+}
+
 spawn-at-startup "foot" "--server"
 spawn-sh-at-startup "{{ paths.data }}/bin/liubai-theme session-start"
 spawn-sh-at-startup "{{ paths.data }}/bin/liubai-shell"
