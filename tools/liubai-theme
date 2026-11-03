@@ -659,10 +659,41 @@ def plate_path(tokens):
     return path if path.is_file() else None
 
 
+def jpeg_size(data):
+    """(width, height) from a JPEG's frame header (SOF0-SOF15, not DHT/JPG/DAC)."""
+    i = 2
+    while i + 9 < len(data):
+        if data[i] != 0xFF:
+            return None
+        marker = data[i + 1]
+        if marker == 0xFF:            # fill byte
+            i += 1
+            continue
+        if marker in (0xD8, 0x01) or 0xD0 <= marker <= 0xD7:
+            i += 2                    # markers without a length
+            continue
+        length = struct.unpack(">H", data[i + 2:i + 4])[0]
+        if 0xC0 <= marker <= 0xCF and marker not in (0xC4, 0xC8, 0xCC):
+            h, w = struct.unpack(">HH", data[i + 5:i + 9])
+            return (w, h) if w and h else None
+        i += 2 + length
+    return None
+
+
+def image_mime(data):
+    if data[:8] == b"\x89PNG\r\n\x1a\n":
+        return "image/png"
+    if data[:3] == b"\xff\xd8\xff":
+        return "image/jpeg"
+    return "image/svg+xml"
+
+
 def image_size(data):
-    """(width, height) of PNG or SVG data, for its proportions; None if unknown."""
+    """(width, height) of PNG, JPEG or SVG data, for its proportions; None if unknown."""
     if data[:8] == b"\x89PNG\r\n\x1a\n" and len(data) >= 24:
         return struct.unpack(">II", data[16:24])
+    if data[:3] == b"\xff\xd8\xff":
+        return jpeg_size(data)
     try:
         root = ElementTree.fromstring(data)
     except ElementTree.ParseError:
@@ -684,43 +715,88 @@ def image_size(data):
 
 
 def plate_parts(tokens, theme, path, width, height, scale):
-    """The drawing, recolored: its darkness becomes ink of the theme's plate color.
+    """The plate set on the desk like an illustration in a book.
 
-    Dark lines on a light ground work as given, in Paper and in Ink alike. The
-    drawing is composited onto white first, so a transparent background stays clear.
+    plate_kind says what it is:
+      line     an etching, a pencil drawing: dark lines on a light ground. Recolored:
+               its darkness becomes ink of the theme's plate color, so it works in
+               Paper and Ink alike; composited onto white first, so a transparent
+               ground stays clear.
+      drawing  a drawing in color on paper (red chalk, watercolor): keeps its colors.
+      painting keeps its colors and its edges.
+    Drawings and paintings are printed onto the desk on Paper (multiply: the white
+    of the sheet becomes the desk); on Ink they are darker and warmer
+    (plate_ink_dim), so a white sheet does not glare. Line plates, and drawings
+    on Paper, fade into the desk at their edges, so the sheet does not draw a box.
+    plate_place = "full" lets a plate cover the whole desk, without a caption.
     """
     t = tokens["theme"][theme]
     w = tokens["wallpaper"]
     data = path.read_bytes()
     size = image_size(data)
     if not size:
-        raise Failure(f"{path}: cannot tell the drawing's size (PNG, or SVG with a viewBox)")
+        raise Failure(f"{path}: cannot tell the image's size (PNG, JPEG, or SVG with a viewBox)")
     aspect = size[0] / size[1]
-    mime = "image/png" if data[:4] == b"\x89PNG" else "image/svg+xml"
-
-    # Fit inside the plate's share of the page; sit a little below the middle.
-    max_w, max_h = float(w.get("plate_width", 0.42)) * width, 0.62 * height
-    pw = min(max_w, max_h * aspect)
-    ph = pw / aspect
-    margin = 0.08 * width
+    mime = image_mime(data)
+    kind = str(w.get("plate_kind", "line")).strip()
+    if kind not in ("line", "drawing", "painting"):
+        kind = "line"
+    light = t["scheme"] == "light"
     place = w.get("plate_place", "right")
-    x = {"left": margin, "center": (width - pw) / 2}.get(place, width - margin - pw)
-    y = 0.53 * height - ph / 2
+    href = f"data:{mime};base64,{base64.b64encode(data).decode()}"
 
-    r, g, b = (number(c) for c in rgb01(t["plate_line"]))
-    out = [
-        '<filter id="ink" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB">',
-        '<feFlood flood-color="#ffffff" result="white"/>',
-        '<feMerge result="flat"><feMergeNode in="white"/><feMergeNode in="SourceGraphic"/></feMerge>',
-        # color = plate line; alpha = how dark the drawing is there
-        f'<feColorMatrix in="flat" type="matrix" values="0 0 0 0 {r}  0 0 0 0 {g}  0 0 0 0 {b}  '
-        '-0.2126 -0.7152 -0.0722 0 1"/>',
-        '</filter>',
-        f'<image x="{x:.1f}" y="{y:.1f}" width="{pw:.1f}" height="{ph:.1f}" preserveAspectRatio="none" '
-        f'filter="url(#ink)" href="data:{mime};base64,{base64.b64encode(data).decode()}"/>',
-    ]
+    if place == "full":
+        x, y, pw, ph, fit = 0.0, 0.0, float(width), float(height), "xMidYMid slice"
+    else:
+        # Fit inside the plate's share of the page; sit a little below the middle.
+        max_w, max_h = float(w.get("plate_width", 0.42)) * width, 0.62 * height
+        pw = min(max_w, max_h * aspect)
+        ph = pw / aspect
+        margin = 0.08 * width
+        x = {"left": margin, "center": (width - pw) / 2}.get(place, width - margin - pw)
+        y = 0.53 * height - ph / 2
+        fit = "none"
+    box = f'x="{x:.1f}" y="{y:.1f}" width="{pw:.1f}" height="{ph:.1f}" preserveAspectRatio="{fit}"'
+
+    if kind == "line":
+        r, g, b = (number(c) for c in rgb01(t["plate_line"]))
+        look = ['<feFlood flood-color="#ffffff" result="white"/>',
+                '<feMerge result="flat"><feMergeNode in="white"/><feMergeNode in="SourceGraphic"/></feMerge>',
+                # color = plate line; alpha = how dark the drawing is there
+                f'<feColorMatrix in="flat" type="matrix" values="0 0 0 0 {r}  0 0 0 0 {g}  0 0 0 0 {b}  '
+                '-0.2126 -0.7152 -0.0722 0 1"/>']
+    elif light:
+        # Printed onto the desk: multiply by the desk's color, so white paper
+        # becomes the desk. (librsvg ignores mix-blend-mode on an image.)
+        look = [f'<feFlood flood-color="{t["wallpaper"]}" result="desk"/>',
+                '<feBlend in="SourceGraphic" in2="desk" mode="multiply"/>']
+    else:
+        # Seen in dim light: darker and a little warmer.
+        k = float(w.get("plate_ink_dim", 0.75))
+        look = [f'<feColorMatrix type="matrix" values="{number(k)} 0 0 0 0  0 {number(k * 0.97)} 0 0 0  '
+                f'0 0 {number(k * 0.92)} 0 0  0 0 0 1 0"/>']
+    out = ['<filter id="plate" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB">',
+           *look, '</filter>']
+
+    fade = place != "full" and (kind == "line" or (kind == "drawing" and light))
+    if fade:
+        feather = 0.06 * min(pw, ph)
+        for axis, f, x2, y2 in (("x", feather / pw, "1", "0"), ("y", feather / ph, "0", "1")):
+            out += [
+                f'<linearGradient id="fade-{axis}" x1="0" y1="0" x2="{x2}" y2="{y2}">'
+                f'<stop offset="0" stop-color="#000"/><stop offset="{number(f)}" stop-color="#fff"/>'
+                f'<stop offset="{number(1 - f)}" stop-color="#fff"/><stop offset="1" stop-color="#000"/>'
+                '</linearGradient>',
+                f'<mask id="edge-{axis}" maskUnits="userSpaceOnUse" x="{x:.1f}" y="{y:.1f}" '
+                f'width="{pw:.1f}" height="{ph:.1f}">'
+                f'<rect x="{x:.1f}" y="{y:.1f}" width="{pw:.1f}" height="{ph:.1f}" fill="url(#fade-{axis})"/></mask>',
+            ]
+        out += ['<g mask="url(#edge-y)">',
+                f'<image {box} filter="url(#plate)" mask="url(#edge-x)" href="{href}"/>', '</g>']
+    else:
+        out.append(f'<image {box} filter="url(#plate)" href="{href}"/>')
     caption = str(w.get("plate_caption", "")).strip()
-    if caption:
+    if caption and place != "full":
         size_px = 13 * float(scale)
         anchor, cx = {"left": ("start", x), "center": ("middle", x + pw / 2)}.get(place, ("end", x + pw))
         out.append(

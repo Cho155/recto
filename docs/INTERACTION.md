@@ -162,7 +162,7 @@
 - **键盘**：↑↓（或 Ctrl+P/N）移动，Enter 打开，Esc 关闭；鼠标点击一行直接打开。
 - **内存**：打开时创建、关闭即销毁；应用列表每次打开时现读。
 
-## Paper／Ink跟随时间
+## Paper／Ink 跟随时间
 
 - 模式有三种：Paper、Ink、Auto。Auto 在 `auto.paper_from`（默认 07:00）到 `auto.ink_from`（默认 19:00）之间用纸，其余时间用墨。时刻写在令牌里，可以修改。暂不按日出日落计算：那需要位置信息。
 - 入口：今日页右上的三段开关 “Paper / Ink / Auto”，或 `liubai-theme switch paper|ink|auto`。模式保存在数据目录的 `mode` 文件里，重新登录后仍然有效。

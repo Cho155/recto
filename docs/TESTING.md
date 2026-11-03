@@ -117,10 +117,10 @@ cd liubai
 
 | # | 怎么做 | 应该看到 | 结果 |
 | --- | --- | --- | --- |
-| H1 | 打开一个 GTK 4 应用（如 GNOME 文本编辑器） | 纸色的窗口，标题是衬线体；编辑区的配色是Paper／Ink（列表符号是陶土色） | |
+| H1 | 打开一个 GTK 4 应用（如 GNOME 文本编辑器） | 纸色的窗口，标题是衬线体；编辑区的配色是 Paper／Ink（列表符号是陶土色） | |
 | H2 | 打开一个 GTK 3 应用 | 配色一致（需要 adw-gtk-theme） | |
-| H3 | 打开一个 Qt 6 应用 | 配色一致（需要 qt6ct）；切换Paper／Ink后重开才变 | |
-| H4 | 需要密码的操作（如 `pkexec true`） | 授权弹窗是Paper／Ink配色（需要 polkit-gnome） | |
+| H3 | 打开一个 Qt 6 应用 | 配色一致（需要 qt6ct）；切换 Paper／Ink 后重开才变 | |
+| H4 | 需要密码的操作（如 `pkexec true`） | 授权弹窗是 Paper／Ink 配色（需要 polkit-gnome） | |
 | H5 | 你平时用的几个应用 | 记下哪些看起来不协调 | |
 
 ## 收集报告
