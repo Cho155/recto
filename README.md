@@ -28,13 +28,12 @@
 截图见 [docs/screenshots/](docs/screenshots/)，详见 [STATUS.md](STATUS.md)。
 
 ```sh
-(cd shell && cargo build --release)     # 外壳（需要 rust、gtk4、gtk4-layer-shell）
-tools/liubai-theme build                # 由令牌生成全部配置到 build/
-tools/liubai-theme install --dry-run    # 先看会改哪些文件
-tools/liubai-theme install              # 安装；已有配置会先改名备份
+./install.sh --dry-run    # 先看：缺哪些包、会改哪些文件
+./install.sh              # 安装；已有配置会先改名备份
+./install.sh --uninstall  # 卸载，放回原来的配置
 ```
 
-用法和验证清单见 [主题系统](docs/THEMES.md)。
+详见 [主题系统](docs/THEMES.md)；在真机上试用，请按 [真机验证清单](docs/TESTING.md)。
 
 ## 文档
 
@@ -45,7 +44,8 @@ tools/liubai-theme install              # 安装；已有配置会先改名备�
 | [架构](docs/ARCHITECTURE.md) | 组件构成、技术选型、内存预算与测量方法 |
 | [路线图](docs/ROADMAP.md) | 分阶段计划与每阶段的完成标准 |
 | [决策记录](docs/DECISIONS.md) | 已做的决定与理由 |
-| [主题系统](docs/THEMES.md) | 令牌如何变成各应用配置、如何切换、虚拟机验证清单 |
+| [主题系统](docs/THEMES.md) | 令牌如何变成各应用配置、安装与卸载、如何切换 |
+| [真机验证清单](docs/TESTING.md) | 第一版在真机上要逐项试的内容，以及 `tools/collect-report` |
 | [交互规格](docs/INTERACTION.md) | 通知、提示、托盘、专注模式的行为（阶段 3） |
 | [设计令牌](design/tokens.toml) | 所有颜色、字号、圆角的唯一来源（草案） |
 | [样张](design/specimen/) | 桌面、状态栏、今日页、配色与字体的静态设计稿 |

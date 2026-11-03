@@ -9,6 +9,7 @@
   wallpaper [options]      Write the wallpaper (contours, or your plate) as SVG.
   session-start            Login hook used by the niri config: wallpaper, color scheme.
   lock                     Lock the screen with swaylock in the current theme.
+  uninstall [--dry-run]    Remove Liubai's links and files; put back what was there before.
 
 Needs Python 3.11 or newer and nothing outside the standard library.
 """
@@ -405,6 +406,8 @@ def cmd_install(args):
             set_current(theme)
             write_mode(theme)
 
+    if not dry:
+        remember_gsettings()   # before any link exists, so a first install is recognised
     for link, dest in all_links():
         if link.is_symlink() and os.readlink(link) == str(dest):
             continue
@@ -423,7 +426,7 @@ def cmd_install(args):
             link.parent.mkdir(parents=True, exist_ok=True)
             link.symlink_to(dest)
 
-    say("set GTK fonts and color scheme with gsettings")
+    say("set GTK fonts and color scheme with gsettings (the old values are kept for uninstall)")
     if not dry:
         apply_gsettings(tokens, current_theme() or tokens["meta"]["default_theme"], fonts=True)
 
@@ -455,6 +458,35 @@ def gsetting(key, value, schema="org.gnome.desktop.interface"):
 def has_schema(schema):
     res = subprocess.run(["gsettings", "list-schemas"], capture_output=True, text=True)
     return schema in res.stdout.split()
+
+
+# GNOME settings Liubai sets, so uninstall can put back what was there.
+GSETTINGS_KEYS = [
+    ("org.gnome.desktop.interface", "color-scheme"),
+    ("org.gnome.desktop.interface", "gtk-theme"),
+    ("org.gnome.desktop.interface", "font-name"),
+    ("org.gnome.desktop.interface", "document-font-name"),
+    ("org.gnome.desktop.interface", "monospace-font-name"),
+    ("org.gnome.TextEditor", "style-scheme"),
+]
+
+
+def gsettings_file():
+    return DATA / "gsettings-before.json"
+
+
+def remember_gsettings():
+    """On the first install only, note the values Liubai is about to change."""
+    already = any(link.is_symlink() and os.readlink(link) == str(dest) for link, dest in all_links())
+    if gsettings_file().exists() or already or shutil.which("gsettings") is None:
+        return
+    before = {}
+    for schema, key in GSETTINGS_KEYS:
+        if has_schema(schema):
+            res = subprocess.run(["gsettings", "get", schema, key], capture_output=True, text=True)
+            if res.returncode == 0:
+                before[f"{schema} {key}"] = res.stdout.strip()   # GVariant text, as `set` takes it
+    write(gsettings_file(), json.dumps(before, indent=2) + "\n")
 
 
 def apply_gsettings(tokens, theme, fonts=False):
@@ -912,6 +944,59 @@ def cmd_lock(args):
     ])
 
 
+# ── uninstall ─────────────────────────────────────────────────────────────
+
+def cmd_uninstall(args):
+    dry = args.dry_run
+    say = (lambda msg: print("would " + msg)) if dry else (lambda msg: print(msg))
+
+    # Links: only ours (pointing into the data dir); the newest backup goes back.
+    for link, _ in all_links():
+        if not (link.is_symlink() and os.readlink(link).startswith(str(DATA) + os.sep)):
+            continue
+        say(f"remove link {tilde(link)}")
+        if not dry:
+            link.unlink()
+        backups = sorted(link.parent.glob(f"{link.name}.liubai-backup-*"))
+        if backups:
+            say(f"put back {backups[-1].name} as {link.name}")
+            if not dry:
+                backups[-1].rename(link)
+
+    # GNOME settings: the values from before the first install, else the defaults.
+    if shutil.which("gsettings"):
+        before = {}
+        if gsettings_file().exists():
+            try:
+                before = json.loads(gsettings_file().read_text())
+            except json.JSONDecodeError:
+                before = {}
+        for schema, key in GSETTINGS_KEYS:
+            if not has_schema(schema):
+                continue
+            value = before.get(f"{schema} {key}")
+            if value is not None:
+                say(f"set {schema} {key} back to {value}")
+                if not dry:
+                    quiet(["gsettings", "set", schema, key, value])
+            else:
+                say(f"reset {schema} {key}")
+                if not dry:
+                    quiet(["gsettings", "reset", schema, key])
+
+    for path in (DATA, CACHE):
+        if path.exists():
+            say(f"remove {tilde(path)}")
+            if not dry:
+                shutil.rmtree(path)
+
+    print()
+    print("Older backups (*.liubai-backup-*) that were not put back are left where they are.")
+    print("A running niri keeps its settings until you log out.")
+    if dry:
+        print("Dry run: nothing was changed.")
+
+
 # ── command line ──────────────────────────────────────────────────────────
 
 def main(argv=None):
@@ -948,6 +1033,10 @@ def main(argv=None):
     sub.add_parser("session-start", help="login hook: wallpaper and color scheme").set_defaults(
         func=cmd_session_start)
     sub.add_parser("lock", help="lock the screen in the current theme").set_defaults(func=cmd_lock)
+
+    p = sub.add_parser("uninstall", help="remove Liubai's links and files, put back what was there")
+    p.add_argument("--dry-run", action="store_true", help="print what would change, change nothing")
+    p.set_defaults(func=cmd_uninstall)
 
     args = parser.parse_args(argv)
     try:

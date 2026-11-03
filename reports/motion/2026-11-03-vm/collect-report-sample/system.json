@@ -1,0 +1,47 @@
+{
+  "os": "Arch Linux",
+  "kernel": "7.2.14-arch1-1",
+  "machine": "QEMU Standard PC (i440FX + PIIX, 1996)",
+  "cpu": "Intel(R) Core(TM) i5-3210M CPU @ 2.50GHz",
+  "memory_mib": 2963,
+  "battery": false,
+  "gpus": [
+    {
+      "card": "card1",
+      "vendor": "0x1af4",
+      "device": "0x1050",
+      "driver": "virtio-pci",
+      "boot_vga": true
+    }
+  ],
+  "screens": [
+    {
+      "name": "Virtual-1",
+      "make": "Red Hat, Inc.",
+      "model": "QEMU Monitor",
+      "pixels": [
+        1440,
+        900
+      ],
+      "refresh_hz": 75.0,
+      "scale": 1.0,
+      "logical": [
+        1440,
+        900
+      ]
+    }
+  ],
+  "niri": "niri 26.04 (8ed0da4)",
+  "foot": "foot version: 1.28.0 (Sep 08 2026, branch 'makepkg') +pgo +ime +graphemes +toplevel-tag +blur -assertions",
+  "gtk4": "4.24.1",
+  "packages": [
+    "niri 26.04-1",
+    "gtk4 1:4.24.1-1",
+    "pango 1:1.58.2-1",
+    "cairo 1.18.6-1",
+    "mesa 1:26.2.6-1",
+    "foot 1.28.0-2"
+  ],
+  "liubai_commit": null,
+  "gsk_renderer": "cairo (the shell's default)"
+}

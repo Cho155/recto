@@ -39,6 +39,17 @@ liubai-theme install ──> ~/.local/share/liubai/{shared,paper,ink,bin,tokens.
 | 壁纸 | 按每块屏幕的实际分辨率生成 SVG：等高线，或作者的线稿（图版，`design/plates/`，按主题重新上色）；叠上极淡的纸纹，转成 PNG 交给 swaybg；结果缓存在 `~/.cache/liubai/` | 新壁纸显示后再结束旧的 swaybg，避免黑屏闪烁；同时生成当天的锁屏扉页 |
 | 锁屏 | `liubai-theme lock` 用当前主题的颜色和扉页图（壁纸加当天日期）调用 swaylock | 每次锁屏时读取；扉页每天生成一次 |
 
+## 安装与卸载
+
+```sh
+./install.sh --dry-run          # 只看：缺哪些包、会改哪些文件
+./install.sh                    # 装包（Arch，会先问）、编译外壳、预览改动、确认后安装
+./install.sh --with-suggested   # 连建议的包一起装（GTK 3 和 Qt 主题、授权弹窗、电池和网络等）
+./install.sh --uninstall        # 删掉留白，放回原来的配置和 GNOME 设置（软件包不删）
+```
+
+真机上的测试步骤见 [真机验证清单](TESTING.md)。
+
 ## 命令
 
 ```sh
@@ -47,6 +58,7 @@ tools/liubai-theme install --dry-run     # 只打印将要做的改动
 tools/liubai-theme install               # 复制到 ~/.local/share/liubai 并链接配置
 tools/liubai-theme switch ink            # 或 paper、auto（按时刻切换）；toggle 在纸墨之间切换
 tools/liubai-theme status
+tools/liubai-theme uninstall --dry-run   # 卸载会做什么
 tools/liubai-theme wallpaper --width 2560 --height 1600 --scale 1.5 -o wall.svg
 ```
 

@@ -710,24 +710,10 @@ tooltip label {
   to   { opacity: 0; transform: translateX({{ motion.travel_side }}px); }
 }
 
-@keyframes liubai-fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-@keyframes liubai-fade-out {
-  from { opacity: 1; }
-  to   { opacity: 0; }
-}
-
-/* Today: the page fades over the desk while its text comes down a little. */
-window.liubai-today {
-  animation: liubai-fade-in {{ motion.duration_long }}ms {{ motion.easing | css_easing }} both;
-}
-
-window.liubai-today.leaving {
-  animation: liubai-fade-out {{ motion.duration_short }}ms {{ motion.easing | css_easing }} both;
-}
+/* Today: the page is laid down at once, like a page turned, and only its
+ * text moves. Animating the page itself (its opacity, or its color) changes
+ * every pixel of a whole-screen window each frame; with software drawing that
+ * took about 25 ms a frame at 1440×900 and stuttered (D87). */
 
 /* Today's text and Search come down from the bar. */
 .today,

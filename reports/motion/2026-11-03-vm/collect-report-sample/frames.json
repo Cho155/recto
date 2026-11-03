@@ -1,0 +1,70 @@
+{
+  "cairo": {
+    "today": {
+      "frames": 18,
+      "refresh_interval_ms": 13.3,
+      "interval_median_ms": 15.4,
+      "interval_p90_ms": 27.1,
+      "interval_max_ms": 75.2,
+      "late_frames": 3
+    },
+    "search": {
+      "frames": 66,
+      "refresh_interval_ms": 13.3,
+      "interval_median_ms": 13.3,
+      "interval_p90_ms": 18.9,
+      "interval_max_ms": 50.0,
+      "late_frames": 7
+    },
+    "notification": {
+      "frames": 29,
+      "refresh_interval_ms": 13.3,
+      "interval_median_ms": 13.3,
+      "interval_p90_ms": 14.1,
+      "interval_max_ms": 19.9,
+      "late_frames": 0
+    },
+    "osd": {
+      "frames": 30,
+      "refresh_interval_ms": 13.3,
+      "interval_median_ms": 13.3,
+      "interval_p90_ms": 14.2,
+      "interval_max_ms": 15.8,
+      "late_frames": 0
+    }
+  },
+  "gl": {
+    "today": {
+      "frames": 22,
+      "refresh_interval_ms": 13.3,
+      "interval_median_ms": 13.4,
+      "interval_p90_ms": 16.0,
+      "interval_max_ms": 83.3,
+      "late_frames": 3
+    },
+    "search": {
+      "frames": 60,
+      "refresh_interval_ms": 13.3,
+      "interval_median_ms": 13.3,
+      "interval_p90_ms": 14.0,
+      "interval_max_ms": 168.8,
+      "late_frames": 3
+    },
+    "notification": {
+      "frames": 17,
+      "refresh_interval_ms": 13.3,
+      "interval_median_ms": 13.1,
+      "interval_p90_ms": 25.8,
+      "interval_max_ms": 152.3,
+      "late_frames": 3
+    },
+    "osd": {
+      "frames": 21,
+      "refresh_interval_ms": 13.3,
+      "interval_median_ms": 13.4,
+      "interval_p90_ms": 15.4,
+      "interval_max_ms": 119.0,
+      "late_frames": 1
+    }
+  }
+}
