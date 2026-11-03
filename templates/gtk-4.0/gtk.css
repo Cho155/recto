@@ -105,3 +105,20 @@
     --scrollbar-outline-color: {{ ink.base }};
   }
 }
+
+/* Window titles are set like a book's title: the serif, roman, not bold; the
+ * subtitle (often a folder) in italic. Controls keep Adwaita's own design. */
+windowtitle .title,
+headerbar .title {
+  font-family: "{{ font.serif }}";
+  font-weight: normal;
+  font-size: 15px;
+  font-feature-settings: "onum";
+}
+
+windowtitle .subtitle {
+  font-family: "{{ font.serif }}";
+  font-style: italic;
+  font-size: 13px;
+  font-feature-settings: "onum";
+}

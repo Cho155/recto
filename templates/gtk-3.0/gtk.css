@@ -57,3 +57,16 @@
 @define-color insensitive_fg_color {{ t.muted }};
 @define-color borders {{ t.line }};
 @define-color unfocused_borders {{ t.line }};
+
+/* Window titles are set like a book's title: the serif, roman, not bold. */
+headerbar .title,
+.titlebar .title {
+  font-family: "{{ font.serif }}";
+  font-weight: normal;
+}
+
+headerbar .subtitle,
+.titlebar .subtitle {
+  font-family: "{{ font.serif }}";
+  font-style: italic;
+}

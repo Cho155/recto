@@ -30,7 +30,7 @@ liubai-theme install ──> ~/.local/share/liubai/{shared,paper,ink,bin,tokens.
 | foot | 一个文件同时写纸（`[colors-light]`）和墨（`[colors-dark]`） | 向 foot 发 SIGUSR2（纸）或 SIGUSR1（墨），已开的终端原地变色 |
 | fuzzel | 经 `current` 链接 | 每次启动重新读取，无需处理 |
 | mako（后备） | 经 `current` 链接；外壳运行时不启动 | `makoctl reload` |
-| GTK 4 | 一个文件：纸为默认，墨写在 `@media (prefers-color-scheme: dark)` 里 | 设置 `color-scheme`，已打开的 libadwaita 应用实时切换 |
+| GTK 4 | 一个文件：纸为默认，墨写在 `@media (prefers-color-scheme: dark)` 里；窗口标题用衬线（D77） | 设置 `color-scheme`，已打开的 libadwaita 应用实时切换；字体改动在应用重开后生效 |
 | GTK 3 | 经 `current` 链接；同时切换 adw-gtk3 / adw-gtk3-dark | 我们的 CSS 在应用重开后生效 |
 | 外壳 | 经 `current` 读取 `shell/style.css`；动效时长和图标线宽在 `shared/shell/tokens.json` | `liubai-shell reload-style`，实时生效 |
 | kitty / alacritty | 不自动链接，需在各自配置里引用 | kitty 收到 SIGUSR1 重读配置；alacritty 下次重读时生效 |
