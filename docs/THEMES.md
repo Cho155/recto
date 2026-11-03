@@ -1,6 +1,6 @@
 # 主题系统（阶段 1）
 
-不写外壳，只靠配置和主题，让一套全新的 niri 会话看起来就是Recto。
+不写外壳，只靠配置和主题，让一套全新的 niri 会话看起来就是 Recto。
 
 **状态**：2026-11-02 在测试虚拟机（Arch，niri 26.04）中验证，清单结果见文末。本机不做测试。
 
@@ -45,7 +45,7 @@ recto-theme install ──> ~/.local/share/recto/{shared,paper,ink,bin,tokens.to
 ./install.sh --dry-run          # 只看：缺哪些包、会改哪些文件
 ./install.sh                    # 装包（Arch，会先问）、编译外壳、预览改动、确认后安装
 ./install.sh --with-suggested   # 连建议的包一起装（GTK 3 和 Qt 主题、授权弹窗、电池和网络等）
-./install.sh --uninstall        # 删掉Recto，放回原来的配置和 GNOME 设置（软件包不删）
+./install.sh --uninstall        # 删掉 Recto，放回原来的配置和 GNOME 设置（软件包不删）
 ```
 
 真机上的测试步骤见 [真机验证清单](TESTING.md)。

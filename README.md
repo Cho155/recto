@@ -1,8 +1,8 @@
-# Recto · Recto
+# Recto
 
 **一套像纸一样安静的 Linux 桌面。**
 
-Recto是一套开源的 Wayland 桌面方案：以 niri 为合成器，配一个自研的轻量外壳（状态栏、通知、搜索、今日页、锁屏），以及一份覆盖常用应用的统一主题。
+Recto 是一套开源的 Wayland 桌面方案：以 niri 为合成器，配一个自研的轻量外壳（状态栏、通知、搜索、今日页、锁屏），以及一份覆盖常用应用的统一主题。
 
 ## 它想成为什么
 
@@ -27,11 +27,22 @@ Recto是一套开源的 Wayland 桌面方案：以 niri 为合成器，配一个
 
 截图见 [docs/screenshots/](docs/screenshots/)，详见 [STATUS.md](STATUS.md)。
 
+## 换成 Recto，或换回原来的桌面
+
+切换由你自己做，脚本不会自动替你换：
+
 ```sh
-./install.sh --dry-run    # 先看：缺哪些包、会改哪些文件
-./install.sh              # 安装；已有配置会先改名备份
-./install.sh --uninstall  # 卸载，放回原来的配置
+cd ~/Projects/recto
+./install.sh --dry-run    # 先看：缺哪些包、会改哪些文件（什么都不改）
+./install.sh              # 换成 Recto：编译外壳（几分钟），已有配置先改名备份，问一次就装
+./install.sh --uninstall  # 换回原来：删掉 Recto 的文件，放回备份的配置和 GNOME 设置
 ```
+
+两个方向都要**注销后重新登录**才完整生效。在原来的桌面里运行安装时，niri 会立刻换上 Recto 的配色和快捷键，但原来的状态栏、壁纸还在跑；重新登录后才是完整的 Recto（状态栏、壁纸、空闲锁屏）。已经在用 Recto 时再运行 `./install.sh`，就是更新到仓库里的最新版本。
+
+- 备份的文件名是 `*.recto-backup-<时间>`，就在原来的位置旁边。
+- 自己的 niri 设置（显示器、键盘布局）写在 `~/.config/niri/local.kdl`，不会被安装覆盖。
+- 壁纸默认是 Hammershøi 的一幅油画；换图见 [design/plates/README.md](design/plates/README.md)。
 
 详见 [主题系统](docs/THEMES.md)；在真机上试用，请按 [真机验证清单](docs/TESTING.md)。
 
