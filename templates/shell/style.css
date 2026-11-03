@@ -34,9 +34,15 @@ window.liubai-bar {
   background-color: {{ t.raised }};
 }
 
-.bar button:focus-visible {
-  outline: 2px solid {{ t.accent }};
-  outline-offset: -2px;
+/* Keyboard focus, everywhere in the shell: the same 1 px clay rule as the
+ * focused window's edge. */
+.bar button:focus-visible,
+.tray-list button:focus-visible,
+.today button:focus-visible,
+.note button:focus-visible,
+.search button.search-row:focus-visible {
+  outline: {{ shape.focus_ring }}px solid {{ t.accent }};
+  outline-offset: -{{ shape.focus_ring }}px;
 }
 
 .bar button.workspace {

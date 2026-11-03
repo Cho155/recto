@@ -4,6 +4,7 @@
 
 use crate::{dbusmenu, sni::{Address, Item}};
 use gtk::{gio, glib, prelude::*};
+use gtk4_layer_shell::{KeyboardMode, LayerShell};
 use std::{
     cell::{Cell, RefCell},
     collections::HashMap,
@@ -59,14 +60,39 @@ fn hbox(spacing: i32) -> gtk::Box {
     gtk::Box::new(gtk::Orientation::Horizontal, spacing)
 }
 
+thread_local! {
+    /// Tray popovers open right now (the list, and a menu opened from it).
+    static OPEN: std::cell::Cell<u32> = const { std::cell::Cell::new(0) };
+}
+
+/// The bar never takes the keyboard, so on its own a popover could not hear
+/// Escape or the arrow keys. While one is open the bar holds the keyboard;
+/// when the last one closes it gives it back to the window behind.
+fn hold_keyboard(popover: &gtk::Popover, hold: bool) {
+    if let Some(bar) = popover.root().and_downcast::<gtk::Window>() {
+        bar.set_keyboard_mode(if hold { KeyboardMode::Exclusive } else { KeyboardMode::None });
+    }
+}
+
 fn popover(anchor: &gtk::Widget, class: &str) -> gtk::Popover {
     let p = gtk::Popover::new();
     p.add_css_class(class);
     p.set_has_arrow(false);
     p.set_position(gtk::PositionType::Bottom);
     p.set_parent(anchor);
+    p.connect_show(|p| {
+        OPEN.with(|n| n.set(n.get() + 1));
+        hold_keyboard(p, true);
+    });
     // Free the widgets once it closes; nothing of the tray stays around while hidden.
     p.connect_closed(|p| {
+        let left = OPEN.with(|n| {
+            n.set(n.get().saturating_sub(1));
+            n.get()
+        });
+        if left == 0 {
+            hold_keyboard(p, false);
+        }
         let p = p.clone();
         glib::idle_add_local_once(move || p.unparent());
     });
