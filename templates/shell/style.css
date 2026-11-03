@@ -392,6 +392,33 @@ progressbar.osd-level.muted progress {
   font-style: italic;
 }
 
+/* Now playing: the title in roman, the artist in italic, and three words
+ * (Previous · Pause · Next) instead of icon buttons. */
+.today .now-playing {
+  margin-top: 36px;
+}
+
+.today .track {
+  font-size: 16px;
+}
+
+.today .artist {
+  color: {{ t.muted }};
+  font-style: italic;
+}
+
+.today .controls {
+  margin: 6px 0 0 -6px;
+}
+
+.today button.word {
+  min-height: 32px;
+  padding: 0 6px;
+  border: none;
+  border-radius: {{ shape.radius_small }}px;
+  font-style: italic;
+}
+
 /* ── Input method and tray (phase 3b) ────────────── */
 
 .bar button.input-method {

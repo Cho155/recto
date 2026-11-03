@@ -47,6 +47,11 @@ pub const CLEAR_ALL: &str = "Clear all";
 pub const START_FOCUS: &str = "Start focus";
 pub const END_FOCUS: &str = "End focus";
 pub const DISMISS: &str = "Dismiss";
+pub const NOW_PLAYING: &str = "Now playing";
+pub const PREVIOUS: &str = "Previous";
+pub const PAUSE: &str = "Pause";
+pub const PLAY: &str = "Play";
+pub const NEXT: &str = "Next";
 
 /// Roman numerals, numbered like chapters: 4 -> "IV". Zero and very large numbers stay digits.
 pub fn roman(n: u64) -> String {

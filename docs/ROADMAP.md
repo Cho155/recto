@@ -63,7 +63,12 @@
   - 空闲锁屏（swayidle）；
   - 授权弹窗（polkit-gnome）。
 - 锁屏决定继续用 swaylock（D41）。
-- 待做：今日页的日程（先测 Evolution Data Server 的内存代价）、Qt 主题。规格与验证结果见 [INTERACTION.md](INTERACTION.md)。
+- 待做：今日页的日程（先测 Evolution Data Server 的内存代价）。规格与验证结果见 [INTERACTION.md](INTERACTION.md)。
+
+**进度**（2026-11-03）：
+- 审美打磨与古典化（D48–D85）：动效、阴影、光学尺寸；书页风格的状态栏、整页今日页、页边纸条、索引式搜索；图版壁纸与扉页锁屏；
+- 今日页的“正在播放”（MPRIS）；
+- Qt 6 主题（qt6ct）、文本编辑器配色、GTK 应用的衬线标题。
 
 ## 阶段 5 · 发布
 

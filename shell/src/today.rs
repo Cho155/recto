@@ -3,10 +3,10 @@
 //! costs no memory the rest of the time. A click on the page outside the text,
 //! or Escape, turns back.
 
-use crate::{inbox::Inbox, state::Desktop, status::{self, Status}, strings};
+use crate::{inbox::Inbox, mpris, state::Desktop, status::{self, Status}, strings};
 use gtk::{gdk, glib, prelude::*};
 use gtk4_layer_shell::{Edge, KeyboardMode, Layer, LayerShell};
-use std::rc::Rc;
+use std::{cell::RefCell, rc::Rc, time::Duration};
 
 pub enum Event {
     Close,
@@ -20,6 +20,90 @@ const MODES: [(&str, &str); 3] = [("paper", "Paper"), ("ink", "Ink"), ("auto", "
 
 pub type Handler = Rc<dyn Fn(Event)>;
 
+/// "Now playing": a title, an artist, and three words to control the player.
+/// Hidden when nothing plays. It talks to the player itself (see mpris.rs).
+struct NowPlaying {
+    section: gtk::Box,
+    title: gtk::Label,
+    artist: gtk::Label,
+    toggle: gtk::Button,
+    player: RefCell<Option<String>>,
+}
+
+impl NowPlaying {
+    fn new() -> Rc<Self> {
+        let section = gtk::Box::new(gtk::Orientation::Vertical, 2);
+        section.add_css_class("now-playing");
+        section.set_visible(false);
+        section.append(&heading(strings::NOW_PLAYING));
+        let title = label("", "track");
+        title.set_ellipsize(gtk::pango::EllipsizeMode::End);
+        title.set_max_width_chars(40);
+        let artist = label("", "artist");
+        artist.set_ellipsize(gtk::pango::EllipsizeMode::End);
+        artist.set_max_width_chars(40);
+        section.append(&title);
+        section.append(&artist);
+
+        let controls = gtk::Box::new(gtk::Orientation::Horizontal, 0);
+        controls.add_css_class("controls");
+        let toggle = gtk::Button::with_label(strings::PAUSE);
+        let np = Rc::new(NowPlaying { section, title, artist, toggle: toggle.clone(), player: RefCell::default() });
+        for (i, (text, method)) in [(strings::PREVIOUS, "Previous"), ("", "PlayPause"), (strings::NEXT, "Next")]
+            .into_iter()
+            .enumerate()
+        {
+            if i > 0 {
+                let sep = gtk::Label::builder().label("·").accessible_role(gtk::AccessibleRole::Presentation).build();
+                sep.add_css_class("segment-sep");
+                controls.append(&sep);
+            }
+            let button = if method == "PlayPause" { toggle.clone() } else { gtk::Button::with_label(text) };
+            button.add_css_class("word");
+            let weak = Rc::downgrade(&np);
+            button.connect_clicked(move |_| {
+                let Some(np) = weak.upgrade() else { return };
+                let Some(player) = np.player.borrow().clone() else { return };
+                let weak = Rc::downgrade(&np);
+                glib::spawn_future_local(async move {
+                    mpris::control(&player, method).await;
+                    // Give the player a moment to change track before reading it back.
+                    glib::timeout_future(Duration::from_millis(250)).await;
+                    if let Some(np) = weak.upgrade() {
+                        np.refresh();
+                    }
+                });
+            });
+            controls.append(&button);
+        }
+        np.section.append(&controls);
+        np
+    }
+
+    fn refresh(self: &Rc<Self>) {
+        let weak = Rc::downgrade(self);
+        glib::spawn_future_local(async move {
+            let playing = mpris::current().await;
+            if let Some(np) = weak.upgrade() {
+                np.show(playing.as_ref());
+            }
+        });
+    }
+
+    fn show(&self, playing: Option<&mpris::Playing>) {
+        *self.player.borrow_mut() = playing.map(|p| p.player.clone());
+        let Some(p) = playing else {
+            self.section.set_visible(false);
+            return;
+        };
+        self.title.set_label(&p.title);
+        self.artist.set_label(p.artist.as_deref().unwrap_or(""));
+        self.artist.set_visible(p.artist.is_some());
+        self.toggle.set_label(if p.playing { strings::PAUSE } else { strings::PLAY });
+        self.section.set_visible(true);
+    }
+}
+
 pub struct Today {
     window: gtk::Window,
     eyebrow: gtk::Label,
@@ -28,6 +112,7 @@ pub struct Today {
     modes: Vec<(&'static str, gtk::Button)>,
     now: gtk::Label,
     notes: gtk::Box,
+    playing: Rc<NowPlaying>,
     clear: gtk::Button,
 }
 
@@ -76,15 +161,19 @@ impl Today {
         sheet.set_size_request(880, -1);
         sheet.set_halign(gtk::Align::Center);
         sheet.set_valign(gtk::Align::Center);
-        // Clicks on the text stay there; a click on the open page around it turns back.
-        let keep = gtk::GestureClick::new();
-        keep.connect_pressed(|gesture, _, _, _| {
-            gesture.set_state(gtk::EventSequenceState::Claimed);
-        });
-        sheet.add_controller(keep);
+        // A click on the open page around the text turns back; clicks on the text
+        // (and its buttons) are left alone. Decided by where the click lands, not by
+        // claiming it, which would take the click away from the buttons.
         let away = gtk::GestureClick::new();
-        let h = handler.clone();
-        away.connect_released(move |_, _, _, _| later(&h, Event::Close));
+        let (h, w, text) = (handler.clone(), window.clone(), sheet.clone());
+        away.connect_released(move |_, _, x, y| {
+            let inside = text
+                .compute_bounds(&w)
+                .is_some_and(|r| r.contains_point(&gtk::graphene::Point::new(x as f32, y as f32)));
+            if !inside {
+                later(&h, Event::Close);
+            }
+        });
         window.add_controller(away);
 
         // Header: the date, and the focus switch.
@@ -152,6 +241,8 @@ impl Today {
         right.append(&notes_header);
         let notes = gtk::Box::new(gtk::Orientation::Vertical, 0);
         right.append(&notes);
+        let playing = NowPlaying::new();
+        right.append(&playing.section);
 
         columns.append(&left);
         columns.append(&right);
@@ -171,10 +262,12 @@ impl Today {
 
         window.set_child(Some(&sheet));
         window.present();
-        Today { window, eyebrow, date, focus, modes, now, notes, clear }
+        Today { window, eyebrow, date, focus, modes, now, notes, playing, clear }
     }
 
     pub fn update(&self, desktop: &Desktop, now: &glib::DateTime, inbox: &Inbox, system: &Status, mode: Option<&str>) {
+        // Read the player again on every update (at least once a minute while open).
+        self.playing.refresh();
         for (name, button) in &self.modes {
             if Some(*name) == mode {
                 button.add_css_class("active");

@@ -26,6 +26,7 @@ mod matching;
 mod memory;
 mod mic;
 mod motion;
+mod mpris;
 mod niri;
 mod notify;
 mod osd;
