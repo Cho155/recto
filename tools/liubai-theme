@@ -887,8 +887,8 @@ def cmd_lock(args):
     os.execvp("swaylock", [
         "swaylock", "--daemonize", "--ignore-empty-password",
         "--color", c("wallpaper"), *images,
-        "--font", tokens["font"]["sans"],
-        "--indicator-radius", "64", "--indicator-thickness", "2",
+        "--font", tokens["font"]["serif"],   # "Verifying", "Wrong" in the book face
+        "--indicator-radius", "64", "--indicator-thickness", str(tokens["shape"]["hairline"]),
         "--inside-color", c("base"), "--ring-color", c("line"),
         "--line-color", c("line"), "--separator-color", "00000000",
         "--key-hl-color", c("accent"), "--bs-hl-color", c("muted"),
