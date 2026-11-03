@@ -618,6 +618,25 @@ entry.search-entry text placeholder {
   font-style: italic;
 }
 
+/* ── Tooltips ────────────────────────────────────── */
+/* A small slip in the same hand as the rest: paper, a hairline, italic. */
+
+tooltip.background {
+  background-color: {{ t.base }};
+  color: {{ t.text }};
+  border: {{ shape.hairline }}px solid {{ t.line }};
+  border-radius: {{ shape.radius_small }}px;
+  box-shadow: none;
+}
+
+tooltip label {
+  padding: 2px 4px;
+  font-family: "{{ font.serif }}";
+  font-size: 14px;
+  font-style: italic;
+  font-feature-settings: "onum";
+}
+
 /* ── Motion ──────────────────────────────────────── */
 /* Panels open with an ease-out, moving a few pixels from where they come
  * from, and leave the same way, faster. The shell destroys a leaving window

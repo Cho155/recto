@@ -8,7 +8,9 @@ use std::cell::RefCell;
 #[derive(Debug)]
 pub enum Update {
     Battery(Option<Battery>),
-    Network { online: Option<bool>, name: Option<String> },
+    /// `wired`: the primary connection is a cable, whose name is usually NetworkManager's
+    /// own ("Wired connection 1") and says nothing to a person.
+    Network { online: Option<bool>, name: Option<String>, wired: bool },
 }
 
 thread_local! {
@@ -60,14 +62,16 @@ fn is_online(state: u32) -> Option<bool> {
     }
 }
 
-async fn connection_name(path: &str) -> Option<String> {
+/// The active connection's name and whether it is a cable.
+async fn connection(path: &str) -> Option<(String, bool)> {
     let active = proxy(
         "org.freedesktop.NetworkManager",
         path,
         "org.freedesktop.NetworkManager.Connection.Active",
     )
     .await?;
-    prop::<String>(&active, "Id")
+    let wired = prop::<String>(&active, "Type").as_deref() == Some("802-3-ethernet");
+    Some((prop::<String>(&active, "Id")?, wired))
 }
 
 async fn read_network(nm: &gio::DBusProxy) -> Update {
@@ -77,11 +81,11 @@ async fn read_network(nm: &gio::DBusProxy) -> Update {
         .and_then(|v| v.get::<glib::variant::ObjectPath>())
         .map(|p| p.as_str().to_owned())
         .filter(|p| p != "/");
-    let name = match (online, primary) {
-        (Some(true), Some(path)) => connection_name(&path).await,
-        _ => None,
+    let (name, wired) = match (online, primary) {
+        (Some(true), Some(path)) => connection(&path).await.map_or((None, false), |(n, w)| (Some(n), w)),
+        _ => (None, false),
     };
-    Update::Network { online, name }
+    Update::Network { online, name, wired }
 }
 
 pub fn watch(on_update: impl Fn(Update) + Clone + 'static) {

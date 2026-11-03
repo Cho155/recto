@@ -17,6 +17,8 @@ pub struct Status {
     /// `None` when NetworkManager is not running.
     pub online: Option<bool>,
     pub network_name: Option<String>,
+    /// Connected by cable: say so, rather than the connection's generated name.
+    pub network_wired: bool,
     /// `None` until the default output has been read once.
     pub muted: Option<bool>,
     /// Something is recording from a microphone. `None` without pactl.
@@ -81,6 +83,7 @@ pub fn right_now(status: &Status) -> String {
         });
     }
     match (status.online, status.network_name.as_deref()) {
+        (Some(true), _) if status.network_wired => parts.push("Connected by cable.".to_owned()),
         (Some(true), Some(name)) if !name.is_empty() => parts.push(format!("Connected to {name}.")),
         (Some(true), _) => parts.push("Connected.".to_owned()),
         (Some(false), _) => parts.push("Offline.".to_owned()),
@@ -140,5 +143,7 @@ mod tests {
         let s = Status { online: Some(true), network_name: Some("Home Wi-Fi".into()), ..battery(82.0, false, Some(18_000)) };
         assert_eq!(right_now(&s), "Battery at 82%, about 5 h left. Connected to Home Wi-Fi.");
         assert_eq!(right_now(&Status::default()), "");
+        let cable = Status { online: Some(true), network_name: Some("Wired connection 1".into()), network_wired: true, ..Status::default() };
+        assert_eq!(right_now(&cable), "Connected by cable.");
     }
 }

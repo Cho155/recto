@@ -95,7 +95,7 @@
   - 主题切换“Paper · Ink · Auto”：三个斜体词，当前的一个带陶土色下划线；
   - “Start focus”（带下划线的斜体），专注中改为“End focus”。
 - “Notifications”区：最近 5 条（应用名 · 时间，标题），右上角有“Clear all”。没有通知时显示“Nothing new.”
-- “Right now”一句话加上电量和网络：“Battery at 82%, about 5 hours left. Connected to Home Wi‑Fi.” 服务不存在时省略相应半句。
+- “Right now”一句话加上电量和网络：“Battery at 82%, about 5 hours left. Connected to Home Wi‑Fi.” 服务不存在时省略相应半句。有线连接说 “Connected by cable.”（D73）。
 
 ## 3a 验证结果（2026-11-02，测试虚拟机）
 

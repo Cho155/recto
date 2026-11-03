@@ -253,9 +253,10 @@ impl Shell {
             let before = status.clone();
             match update {
                 system::Update::Battery(battery) => status.battery = battery,
-                system::Update::Network { online, name } => {
+                system::Update::Network { online, name, wired } => {
                     status.online = online;
                     status.network_name = name;
+                    status.network_wired = wired;
                 }
             }
             *status != before

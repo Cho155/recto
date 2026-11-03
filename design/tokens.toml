@@ -129,6 +129,7 @@ ui           = 10.5   # ~14 px
 terminal     = 10.5
 launcher     = 12
 notification = 10.5
+document     = 11     # reading text in apps (GNOME's document font): the serif
 
 # ── Shape and space (logical px) ──────────
 [shape]

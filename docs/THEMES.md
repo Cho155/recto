@@ -34,6 +34,7 @@ liubai-theme install ──> ~/.local/share/liubai/{shared,paper,ink,bin,tokens.
 | GTK 3 | 经 `current` 链接；同时切换 adw-gtk3 / adw-gtk3-dark | 我们的 CSS 在应用重开后生效 |
 | 外壳 | 经 `current` 读取 `shell/style.css`；动效时长和图标线宽在 `shared/shell/tokens.json` | `liubai-shell reload-style`，实时生效 |
 | kitty / alacritty | 不自动链接，需在各自配置里引用 | kitty 收到 SIGUSR1 重读配置；alacritty 下次重读时生效 |
+| GtkSourceView（文本编辑器的正文区） | `liubai`（纸）和 `liubai-dark`（墨）两套方案都链接到 `~/.local/share/gtksourceview-{4,5}/styles/`；安装时把 GNOME 文本编辑器设为 `liubai` | 编辑器随系统明暗自动选浅色或深色方案 |
 | 壁纸 | 按每块屏幕的实际分辨率生成 SVG：等高线，或作者的线稿（图版，`design/plates/`，按主题重新上色）；叠上极淡的纸纹，转成 PNG 交给 swaybg；结果缓存在 `~/.cache/liubai/` | 新壁纸显示后再结束旧的 swaybg，避免黑屏闪烁；同时生成当天的锁屏扉页 |
 | 锁屏 | `liubai-theme lock` 用当前主题的颜色和扉页图（壁纸加当天日期）调用 swaylock | 每次锁屏时读取；扉页每天生成一次 |
 

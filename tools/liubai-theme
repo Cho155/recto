@@ -57,6 +57,7 @@ TARGETS = [
     ("shell/style.css", "theme"),
     ("shell/auto", "shared"),
     ("shell/tokens.json", "shared"),
+    ("gtksourceview/liubai.xml", "theme"),
 ]
 
 SHELL_BINARY = REPO / "shell" / "target" / "release" / "liubai-shell"
@@ -71,6 +72,19 @@ LINKS = [
     ("gtk-3.0/gtk.css", "current/gtk-3.0/gtk.css"),
     ("gtk-4.0/gtk.css", "shared/gtk-4.0/gtk.css"),   # follows color-scheme live
 ]
+
+# The same, for files under ~/.local/share. GtkSourceView pairs a light and a
+# dark scheme by name, so both are installed whatever the current theme.
+DATA_LINKS = [
+    (f"gtksourceview-{v}/styles/{name}.xml", f"{theme}/gtksourceview/liubai.xml")
+    for v in (4, 5) for name, theme in (("liubai", "paper"), ("liubai-dark", "ink"))
+]
+
+
+def all_links():
+    """(link, file it should point to) for every app config Liubai links."""
+    return ([(CONFIG / rel, DATA / target) for rel, target in LINKS]
+            + [(DATA.parent / rel, DATA / target) for rel, target in DATA_LINKS])
 
 
 class Failure(Exception):
@@ -200,6 +214,12 @@ def f_css(v, arg, where):
     return f"rgba({r}, {g}, {b}, {number(a)})"
 
 
+def f_if_dark(v, arg, where):
+    if v not in ("light", "dark"):
+        raise Failure(f"{where}: if_dark needs a scheme (light or dark), got '{v}'")
+    return (arg or "") if v == "dark" else ""
+
+
 def f_yesno(v, arg, where):
     if not isinstance(v, bool):
         raise Failure(f"{where}: yesno needs true or false, got '{v}'")
@@ -229,6 +249,7 @@ FILTERS = {
     "css": f_css,                # #RRGGBB as is, #RRGGBBAA -> rgba(...)
     "yesno": f_yesno,            # true -> yes
     "css_easing": f_css_easing,  # ease-out-cubic -> cubic-bezier(0.33, 1, 0.68, 1)
+    "if_dark": f_if_dark,        # t.scheme | if_dark(-dark) -> "-dark" in Ink, "" in Paper
 }
 
 
@@ -374,8 +395,7 @@ def cmd_install(args):
             set_current(theme)
             write_mode(theme)
 
-    for rel, target in LINKS:
-        link, dest = CONFIG / rel, DATA / target
+    for link, dest in all_links():
         if link.is_symlink() and os.readlink(link) == str(dest):
             continue
         if link.is_symlink() and os.readlink(link).startswith(str(DATA) + os.sep):
@@ -418,8 +438,13 @@ def quiet(cmd, timeout=5):
         return False
 
 
-def gsetting(key, value):
-    quiet(["gsettings", "set", "org.gnome.desktop.interface", key, value])
+def gsetting(key, value, schema="org.gnome.desktop.interface"):
+    quiet(["gsettings", "set", schema, key, value])
+
+
+def has_schema(schema):
+    res = subprocess.run(["gsettings", "list-schemas"], capture_output=True, text=True)
+    return schema in res.stdout.split()
 
 
 def apply_gsettings(tokens, theme, fonts=False):
@@ -434,8 +459,11 @@ def apply_gsettings(tokens, theme, fonts=False):
     if fonts:
         f = tokens["font"]
         gsetting("font-name", f"{f['sans']} {f['pt']['ui']}")
-        gsetting("document-font-name", f"{f['sans']} {f['pt']['ui']}")
+        gsetting("document-font-name", f"{f['serif']} {f['pt']['document']}")   # reading text: the book face
         gsetting("monospace-font-name", f"{f['mono']} {f['pt']['terminal']}")
+        # The text editor's page in Paper and Ink (it picks liubai-dark by itself in the dark).
+        if has_schema("org.gnome.TextEditor"):
+            gsetting("style-scheme", "liubai", schema="org.gnome.TextEditor")
 
 
 def tell_apps(tokens, theme):
@@ -506,9 +534,8 @@ def cmd_status(args):
     print(f"mode:    {read_mode() or 'not set'}")
     print(f"data:    {DATA}")
     print(f"tokens:  {args.tokens}")
-    for rel, target in LINKS:
-        link = CONFIG / rel
-        state = "linked" if link.is_symlink() and os.readlink(link) == str(DATA / target) else "not linked"
+    for link, dest in all_links():
+        state = "linked" if link.is_symlink() and os.readlink(link) == str(dest) else "not linked"
         print(f"{state:11} {link}")
 
 
