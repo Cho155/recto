@@ -18,8 +18,8 @@
 | 部分 | 内容 | 文档 |
 | --- | --- | --- |
 | 设计 | 理念（含“古典，而不是 Windows”）、设计语言、令牌、样张（9 张画板，已同步为古典风格，含锁屏扉页和图版位置） | `docs/VISION.md`、`docs/DESIGN-LANGUAGE.md`、`design/` |
-| 主题系统 | 一份令牌生成 niri、foot、GTK 3/4、GtkSourceView、Qt 6（qt6ct）、mako、fuzzel、kitty、alacritty、外壳的配置；纸／墨／Auto 实时切换；壁纸是等高线或作者的线稿（图版：按主题上色，配图版说明），带纸纹；锁屏是扉页 | `docs/THEMES.md`、`design/plates/README.md` |
-| 外壳 `liubai-shell` | 状态栏（页眉：衬线、罗马数字工作区、斜体日期、旧体数字时钟）、今日页（整页；正在播放）、通知（页边纸条，陶土色朱批）、音量／麦克风／亮度提示、专注模式、搜索（索引）、托盘（可用键盘） | `docs/INTERACTION.md`、`docs/ARCHITECTURE.md` |
+| 主题系统 | 一份令牌生成 niri、foot、GTK 3/4、GtkSourceView、Qt 6（qt6ct）、mako、fuzzel、kitty、alacritty、外壳的配置；Paper／Ink／Auto 实时切换；壁纸是等高线或作者的线稿（图版：按主题上色，配图版说明），带纸纹；锁屏是扉页 | `docs/THEMES.md`、`design/plates/README.md` |
+| 外壳 `liubai-shell` | 状态栏（页眉：衬线、罗马数字工作区、斜体日期、旧体数字时钟）、今日页（整页；正在播放）、通知（页边纸条，陶土色红字标注）、音量／麦克风／亮度提示、专注模式、搜索（索引）、托盘（可用键盘） | `docs/INTERACTION.md`、`docs/ARCHITECTURE.md` |
 | 动效 | 面板从来处进出、只移动 6 px；通知原地放下、其他纸条平滑让位；开窗像一张纸落到桌上（niri 着色器） | `docs/DESIGN-LANGUAGE.md` 动效一节 |
 | 材质与排版 | Source Serif 4 为主：小型大写、旧体数字、光学尺寸；小圆角（6／3／2）；1 px 陶土焦点线（窗口和按钮一致）；当前窗口阴影略深；自绘细线图标；纸条样式的提示气泡 | D55–D58、D63–D67、D74、D80 |
 | 应用 | GTK 3/4 配色与衬线窗口标题；文本编辑器正文区的 `liubai` 配色；Qt 6 配色；GNOME 文档字体为衬线 | `docs/THEMES.md`、D75、D77、D83 |
@@ -62,7 +62,7 @@
 - 搜索不读 .desktop 的 Keywords（D45）。
 - 输入法指示不支持 IBus；托盘项不响应滚轮。
 - 在别的程序里改音量不会弹出提示（D30）。
-- 卷轴缩略分不出屏幕内外的列（niri 不报告平铺窗口的视口位置）。
+- 列缩略分不出屏幕内外的列（niri 不报告平铺窗口的视口位置）。
 - polkit-gnome 常驻约 11–17 MiB，是可以优化的大头。
 - 所有测量都在虚拟机（virgl 显卡）里完成；在真机上要重新测量。
 

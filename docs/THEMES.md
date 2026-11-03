@@ -19,7 +19,7 @@ liubai-theme install ──> ~/.local/share/liubai/{shared,paper,ink,bin,tokens.
 ```
 
 - **只有令牌是源头**。模板里用 `{{ t.base }}`、`{{ paper.ansi.red | bare }}` 这样的占位符取值；写错名字、颜色格式不对，`build` 会直接报错并指出模板和行号。
-- **纸和墨必须定义相同的令牌**，否则 `build` 拒绝生成。这样不会出现“某个模板只在一种主题下能用”。
+- **Paper 和 Ink必须定义相同的令牌**，否则 `build` 拒绝生成。这样不会出现“某个模板只在一种主题下能用”。
 - **切换主题只换一个链接**。`current` 指向 `paper` 或 `ink`；fuzzel、mako、GTK 的配置都经过 `current`，所以不用重新链接。
 
 ### 各应用怎么跟着切换
@@ -56,7 +56,7 @@ liubai-theme install ──> ~/.local/share/liubai/{shared,paper,ink,bin,tokens.
 tools/liubai-theme build                 # 生成 build/
 tools/liubai-theme install --dry-run     # 只打印将要做的改动
 tools/liubai-theme install               # 复制到 ~/.local/share/liubai 并链接配置
-tools/liubai-theme switch ink            # 或 paper、auto（按时刻切换）；toggle 在纸墨之间切换
+tools/liubai-theme switch ink            # 或 paper、auto（按时刻切换）；toggle 在Paper／Ink之间切换
 tools/liubai-theme status
 tools/liubai-theme uninstall --dry-run   # 卸载会做什么
 tools/liubai-theme wallpaper --width 2560 --height 1600 --scale 1.5 -o wall.svg
@@ -64,7 +64,7 @@ tools/liubai-theme wallpaper --width 2560 --height 1600 --scale 1.5 -o wall.svg
 
 `install` 遇到已有的配置文件，不覆盖，而是改名为 `<文件名>.liubai-backup-<时间>`。
 
-快捷键（写在 niri 配置里）：`Mod+Return` 终端、`Mod+Space` 搜索、`Mod+A` 今日页、`Mod+Shift+T` 切换纸／墨、`Super+Alt+L` 锁屏、`Mod+O` 总览、`Mod+Shift+/` 全部快捷键。音量、麦克风、亮度键交给外壳处理并弹出提示。
+快捷键（写在 niri 配置里）：`Mod+Return` 终端、`Mod+Space` 搜索、`Mod+A` 今日页、`Mod+Shift+T` 切换Paper／Ink、`Super+Alt+L` 锁屏、`Mod+O` 总览、`Mod+Shift+/` 全部快捷键。音量、麦克风、亮度键交给外壳处理并弹出提示。
 
 个人设置（显示器、键盘布局、额外快捷键）写在 `~/.config/niri/local.kdl`，主配置最后会 include 它，重新生成主题不会覆盖。
 
@@ -101,4 +101,4 @@ tools/liubai-theme wallpaper --width 2560 --height 1600 --scale 1.5 -o wall.svg
 - GTK 4 两套配色分开时，标题栏和正文颜色不一致（D27）。
 - 状态栏按钮文字被默认主题加粗。
 
-仍待处理：gnome-text-editor 等应用的正文区用的是 GtkSourceView 自带的配色方案，与纸墨略有差异，可以另做一套 `liubai` 配色方案。
+仍待处理：gnome-text-editor 等应用的正文区用的是 GtkSourceView 自带的配色方案，与Paper／Ink略有差异，可以另做一套 `liubai` 配色方案。

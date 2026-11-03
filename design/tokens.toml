@@ -192,7 +192,7 @@ grain       = 0.04   # paper grain: strongest speck, as opacity of the text colo
 plate         = ""        # "" = the contours
 plate_place   = "right"   # left | center | right
 plate_width   = 0.42      # the most of the screen's width it may take
-plate_caption = ""        # set in italic under it, e.g. "Fig. 1 — The Great Wave, after Hokusai"
+plate_caption = ""        # set in italic under it, e.g. "Plate I. — Six's Bridge, after Rembrandt"
 
 # ── Auto theme ────────────────────────────
 # "Auto" mode uses Paper from paper_from until ink_from, Ink the rest of the day.

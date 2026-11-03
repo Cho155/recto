@@ -4,9 +4,9 @@
 
 | 角色 | 选择 | 说明 |
 | --- | --- | --- |
-| 合成器 | niri | 滚动平铺契合“手卷”隐喻；支持圆角、阴影、窗口透明度；26.04 实现了背景模糊协议 `ext-background-effect-v1`。不自研合成器。 |
+| 合成器 | niri | 滚动平铺契合“横排书页”隐喻；支持圆角、阴影、窗口透明度；26.04 实现了背景模糊协议 `ext-background-effect-v1`。不自研合成器。 |
 | 外壳 | 自研，Rust + GTK4 + gtk4-layer-shell，单进程 | 状态栏、通知服务、OSD（音量／亮度提示）、搜索（启动器）、今日页、锁屏。 |
-| 终端 | foot（默认），server 模式 | 内存占用低，支持透明；多个窗口共享一个进程；纸和墨写在同一个配置里，靠信号切换。kitty、alacritty 也提供主题。 |
+| 终端 | foot（默认），server 模式 | 内存占用低，支持透明；多个窗口共享一个进程；Paper 和 Ink写在同一个配置里，靠信号切换。kitty、alacritty 也提供主题。 |
 | 壁纸 | 程序生成的等高线 | 按每块屏幕的像素尺寸生成 SVG，转 PNG 后由 swaybg 显示；以后可由外壳自绘。 |
 | 主题导出 | `tools/liubai-theme` | 从 `design/tokens.toml` 和 `templates/` 生成 niri、foot、fuzzel、mako、GTK 3/4、GtkSourceView、Qt 6（qt6ct）、kitty、alacritty 和外壳的配置，并负责安装、卸载、切换、壁纸、锁屏。安装的入口是仓库根目录的 `install.sh`。详见 [THEMES.md](THEMES.md)。 |
 | 空闲与锁屏 | swayidle + 主题化的 swaylock | `liubai-theme lock` 用当前主题的颜色锁屏；锁屏不自己实现（D41）。 |
@@ -31,7 +31,7 @@
 | `main.rs` | 单实例与命令（`toggle-today`、`volume`、`brightness`、`mic-mute`、`focus`、`reload-style`、`quit`）；把各部分串起来 |
 | `state.rs` | 由 niri 事件重建的桌面状态：工作区、窗口、列。纯数据，带单元测试 |
 | `niri.rs` | niri IPC：在 GTK 主循环里异步读事件流，断开后自动重连；发送动作 |
-| `bar.rs` | 状态栏：工作区圆点与名称（点击打开总览）、卷轴缩略、日期与时间（点击打开今日页）；在栏上滚动切换工作区 |
+| `bar.rs` | 状态栏：工作区圆点与名称（点击打开总览）、列缩略、日期与时间（点击打开今日页）；在栏上滚动切换工作区 |
 | `today.rs` | 今日页：盖住整个桌面的一页纸，日期、主题切换、专注、一句话状态、最近通知；按需创建，点页边或 Esc 关闭 |
 | `inbox.rs` | 通知的屏幕显示、历史、未读、专注暂存。纯数据，带单元测试 |
 | `notify.rs` | `org.freedesktop.Notifications` D-Bus 服务 |
