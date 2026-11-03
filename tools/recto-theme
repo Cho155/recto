@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""liubai-theme: turn Liubai's design tokens into app configs, and switch themes.
+"""recto-theme: turn Recto's design tokens into app configs, and switch themes.
 
   build                    Render templates/ into build/ for every theme.
   install [--dry-run]      Copy build/ to the data dir and link app configs to it.
@@ -9,7 +9,7 @@
   wallpaper [options]      Write the wallpaper (contours, or your plate) as SVG.
   session-start            Login hook used by the niri config: wallpaper, color scheme.
   lock                     Lock the screen with swaylock in the current theme.
-  uninstall [--dry-run]    Remove Liubai's links and files; put back what was there before.
+  uninstall [--dry-run]    Remove Recto's links and files; put back what was there before.
 
 Needs Python 3.11 or newer and nothing outside the standard library.
 """
@@ -39,10 +39,10 @@ HERE = Path(__file__).resolve().parent
 REPO = HERE.parent
 TEMPLATES = REPO / "templates"
 HOME = Path.home()
-DATA = Path(os.environ.get("XDG_DATA_HOME") or HOME / ".local/share") / "liubai"
+DATA = Path(os.environ.get("XDG_DATA_HOME") or HOME / ".local/share") / "recto"
 CONFIG = Path(os.environ.get("XDG_CONFIG_HOME") or HOME / ".config")
-CACHE = Path(os.environ.get("XDG_CACHE_HOME") or HOME / ".cache") / "liubai"
-BUILD_MARK = ".liubai-build"
+CACHE = Path(os.environ.get("XDG_CACHE_HOME") or HOME / ".cache") / "recto"
+BUILD_MARK = ".recto-build"
 
 # Template (under templates/) and whether it is rendered once or once per theme.
 TARGETS = [
@@ -53,17 +53,17 @@ TARGETS = [
     ("fuzzel/fuzzel.ini", "theme"),
     ("mako/config", "theme"),
     ("gtk-3.0/gtk.css", "theme"),
-    ("kitty/liubai.conf", "theme"),
-    ("alacritty/liubai.toml", "theme"),
+    ("kitty/recto.conf", "theme"),
+    ("alacritty/recto.toml", "theme"),
     ("shell/style.css", "theme"),
     ("shell/auto", "shared"),
     ("shell/tokens.json", "shared"),
-    ("gtksourceview/liubai.xml", "theme"),
-    ("qt6ct/liubai.conf", "theme"),
+    ("gtksourceview/recto.xml", "theme"),
+    ("qt6ct/recto.conf", "theme"),
     ("qt6ct/qt6ct.conf", "shared"),
 ]
 
-SHELL_BINARY = REPO / "shell" / "target" / "release" / "liubai-shell"
+SHELL_BINARY = REPO / "shell" / "target" / "release" / "recto-shell"
 
 # App config path (under ~/.config) -> file in the data dir it should point to.
 # Paths through "current" follow theme switches without being relinked.
@@ -74,19 +74,19 @@ LINKS = [
     ("mako/config", "current/mako/config"),
     ("gtk-3.0/gtk.css", "current/gtk-3.0/gtk.css"),
     ("gtk-4.0/gtk.css", "shared/gtk-4.0/gtk.css"),   # follows color-scheme live
-    ("qt6ct/qt6ct.conf", "shared/qt6ct/qt6ct.conf"),   # points at current/qt6ct/liubai.conf
+    ("qt6ct/qt6ct.conf", "shared/qt6ct/qt6ct.conf"),   # points at current/qt6ct/recto.conf
 ]
 
 # The same, for files under ~/.local/share. GtkSourceView pairs a light and a
 # dark scheme by name, so both are installed whatever the current theme.
 DATA_LINKS = [
-    (f"gtksourceview-{v}/styles/{name}.xml", f"{theme}/gtksourceview/liubai.xml")
-    for v in (4, 5) for name, theme in (("liubai", "paper"), ("liubai-dark", "ink"))
+    (f"gtksourceview-{v}/styles/{name}.xml", f"{theme}/gtksourceview/recto.xml")
+    for v in (4, 5) for name, theme in (("recto", "paper"), ("recto-dark", "ink"))
 ]
 
 
 def all_links():
-    """(link, file it should point to) for every app config Liubai links."""
+    """(link, file it should point to) for every app config Recto links."""
     return ([(CONFIG / rel, DATA / target) for rel, target in LINKS]
             + [(DATA.parent / rel, DATA / target) for rel, target in DATA_LINKS])
 
@@ -312,7 +312,7 @@ def cmd_build(args):
     out = Path(args.out).resolve()
     if out.exists():
         if not (out / BUILD_MARK).exists() and any(out.iterdir()):
-            raise Failure(f"{out} exists and was not made by liubai-theme; choose another --out")
+            raise Failure(f"{out} exists and was not made by recto-theme; choose another --out")
         shutil.rmtree(out)
 
     count = 0
@@ -358,13 +358,13 @@ def set_current(theme):
 
 
 def backup_name(path):
-    return path.with_name(f"{path.name}.liubai-backup-{time.strftime('%Y%m%d-%H%M%S')}")
+    return path.with_name(f"{path.name}.recto-backup-{time.strftime('%Y%m%d-%H%M%S')}")
 
 
 def cmd_install(args):
     build = Path(args.build).resolve()
     if not (build / BUILD_MARK).exists():
-        raise Failure(f"{build} is not a build; run `liubai-theme build` first")
+        raise Failure(f"{build} is not a build; run `recto-theme build` first")
     tokens = load_tokens(build / "tokens.toml")
     dry = args.dry_run
     say = (lambda msg: print("would " + msg)) if dry else (lambda msg: print(msg))
@@ -383,7 +383,7 @@ def cmd_install(args):
         if (build / "plates").is_dir():
             shutil.copytree(build / "plates", DATA / "plates")
         (DATA / "bin").mkdir(parents=True, exist_ok=True)
-        tool = DATA / "bin" / "liubai-theme"
+        tool = DATA / "bin" / "recto-theme"
         if Path(__file__).resolve() != tool.resolve():
             shutil.copy2(Path(__file__).resolve(), tool)
         tool.chmod(0o755)
@@ -391,10 +391,10 @@ def cmd_install(args):
         say(f"copy {SHELL_BINARY} into {DATA / 'bin'}")
         if not dry:
             # Copy beside, then rename: a running shell keeps its old binary intact.
-            tmp = DATA / "bin" / ".liubai-shell.tmp"
+            tmp = DATA / "bin" / ".recto-shell.tmp"
             shutil.copy2(SHELL_BINARY, tmp)
             tmp.chmod(0o755)
-            os.replace(tmp, DATA / "bin" / "liubai-shell")
+            os.replace(tmp, DATA / "bin" / "recto-shell")
     else:
         print(f"note: {SHELL_BINARY} not built; the bar will be missing "
               "(cargo build --release in shell/)")
@@ -432,8 +432,8 @@ def cmd_install(args):
 
     print()
     print("Not linked automatically. Add these lines if you use them:")
-    print(f"  kitty.conf:     include {tilde(DATA)}/current/kitty/liubai.conf")
-    print(f'  alacritty.toml: [general] import = ["{tilde(DATA)}/current/alacritty/liubai.toml"]')
+    print(f"  kitty.conf:     include {tilde(DATA)}/current/kitty/recto.conf")
+    print(f'  alacritty.toml: [general] import = ["{tilde(DATA)}/current/alacritty/recto.toml"]')
     if dry:
         print("\nDry run: nothing was changed.")
 
@@ -460,7 +460,7 @@ def has_schema(schema):
     return schema in res.stdout.split()
 
 
-# GNOME settings Liubai sets, so uninstall can put back what was there.
+# GNOME settings Recto sets, so uninstall can put back what was there.
 GSETTINGS_KEYS = [
     ("org.gnome.desktop.interface", "color-scheme"),
     ("org.gnome.desktop.interface", "gtk-theme"),
@@ -476,7 +476,7 @@ def gsettings_file():
 
 
 def remember_gsettings():
-    """On the first install only, note the values Liubai is about to change."""
+    """On the first install only, note the values Recto is about to change."""
     already = any(link.is_symlink() and os.readlink(link) == str(dest) for link, dest in all_links())
     if gsettings_file().exists() or already or shutil.which("gsettings") is None:
         return
@@ -503,9 +503,9 @@ def apply_gsettings(tokens, theme, fonts=False):
         gsetting("font-name", f"{f['sans']} {f['pt']['ui']}")
         gsetting("document-font-name", f"{f['serif']} {f['pt']['document']}")   # reading text: the book face
         gsetting("monospace-font-name", f"{f['mono']} {f['pt']['terminal']}")
-        # The text editor's page in Paper and Ink (it picks liubai-dark by itself in the dark).
+        # The text editor's page in Paper and Ink (it picks recto-dark by itself in the dark).
         if has_schema("org.gnome.TextEditor"):
-            gsetting("style-scheme", "liubai", schema="org.gnome.TextEditor")
+            gsetting("style-scheme", "recto", schema="org.gnome.TextEditor")
 
 
 def tell_apps(tokens, theme):
@@ -519,7 +519,7 @@ def tell_apps(tokens, theme):
     quiet(["makoctl", "reload"])
     quiet(["niri", "msg", "action", "load-config-file"])
     # Never starts a shell: a fresh instance ignores reload-style and exits.
-    quiet([str(DATA / "bin" / "liubai-shell"), "reload-style"])
+    quiet([str(DATA / "bin" / "recto-shell"), "reload-style"])
     apply_gsettings(tokens, theme)
     set_wallpaper(tokens, theme)
 
@@ -559,7 +559,7 @@ def cmd_switch(args, theme=None):
     tokens = load_tokens(args.tokens)
     theme = theme_for_now(tokens) if requested == "auto" else requested
     if not (DATA / theme).is_dir():
-        raise Failure(f"{DATA / theme} is missing; run `liubai-theme install` first")
+        raise Failure(f"{DATA / theme} is missing; run `recto-theme install` first")
     write_mode(requested)
     set_current(theme)
     tell_apps(tokens, theme)
@@ -1033,7 +1033,7 @@ def cmd_uninstall(args):
         say(f"remove link {tilde(link)}")
         if not dry:
             link.unlink()
-        backups = sorted(link.parent.glob(f"{link.name}.liubai-backup-*"))
+        backups = sorted(link.parent.glob(f"{link.name}.recto-backup-*"))
         if backups:
             say(f"put back {backups[-1].name} as {link.name}")
             if not dry:
@@ -1067,7 +1067,7 @@ def cmd_uninstall(args):
                 shutil.rmtree(path)
 
     print()
-    print("Older backups (*.liubai-backup-*) that were not put back are left where they are.")
+    print("Older backups (*.recto-backup-*) that were not put back are left where they are.")
     print("A running niri keeps its settings until you log out.")
     if dry:
         print("Dry run: nothing was changed.")
@@ -1076,7 +1076,7 @@ def cmd_uninstall(args):
 # ── command line ──────────────────────────────────────────────────────────
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(prog="liubai-theme", description=__doc__,
+    parser = argparse.ArgumentParser(prog="recto-theme", description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--tokens", type=Path, default=default_tokens_path(),
                         help="design tokens file (default: %(default)s)")
@@ -1110,7 +1110,7 @@ def main(argv=None):
         func=cmd_session_start)
     sub.add_parser("lock", help="lock the screen in the current theme").set_defaults(func=cmd_lock)
 
-    p = sub.add_parser("uninstall", help="remove Liubai's links and files, put back what was there")
+    p = sub.add_parser("uninstall", help="remove Recto's links and files, put back what was there")
     p.add_argument("--dry-run", action="store_true", help="print what would change, change nothing")
     p.set_defaults(func=cmd_uninstall)
 
@@ -1118,7 +1118,7 @@ def main(argv=None):
     try:
         args.func(args)
     except Failure as e:
-        print(f"liubai-theme: {e}", file=sys.stderr)
+        print(f"recto-theme: {e}", file=sys.stderr)
         return 1
     return 0
 

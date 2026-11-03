@@ -17,7 +17,7 @@ pub struct Osd {
 impl Osd {
     pub fn new(app: &gtk::Application, monitor: Option<&gdk::Monitor>) -> Osd {
         let window = gtk::Window::builder().application(app).build();
-        window.add_css_class("liubai-osd");
+        window.add_css_class("recto-osd");
         window.set_resizable(false); // follow the content as it shrinks, too
         window.init_layer_shell();
         window.set_layer(Layer::Overlay);
@@ -26,7 +26,7 @@ impl Osd {
         }
         window.set_anchor(Edge::Bottom, true);
         window.set_margin(Edge::Bottom, 68); // 96 to the panel; .osd adds 28 of shadow room
-        window.set_namespace(Some("liubai-osd"));
+        window.set_namespace(Some("recto-osd"));
         window.set_keyboard_mode(KeyboardMode::None);
 
         let row = gtk::Box::new(gtk::Orientation::Horizontal, 16);

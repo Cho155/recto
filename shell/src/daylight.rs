@@ -1,14 +1,14 @@
 //! Paper by day, Ink by night: the "Auto" theme mode.
 //!
-//! liubai-theme keeps the mode in <data>/liubai/mode and the switch times in
-//! <data>/liubai/shared/shell/auto (rendered from the tokens). The shell checks once
-//! a minute and asks liubai-theme to switch when the time comes.
+//! recto-theme keeps the mode in <data>/recto/mode and the switch times in
+//! <data>/recto/shared/shell/auto (rendered from the tokens). The shell checks once
+//! a minute and asks recto-theme to switch when the time comes.
 
 use gtk::glib;
 use std::path::PathBuf;
 
 fn data() -> PathBuf {
-    glib::user_data_dir().join("liubai")
+    glib::user_data_dir().join("recto")
 }
 
 /// "paper", "ink" or "auto". Missing file means no automatic switching.

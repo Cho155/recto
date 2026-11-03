@@ -1,3 +1,3 @@
-# Liubai · when Auto mode switches themes (generated from design/tokens.toml)
+# Recto · when Auto mode switches themes (generated from design/tokens.toml)
 paper_from={{ auto.paper_from }}
 ink_from={{ auto.ink_from }}

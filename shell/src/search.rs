@@ -46,12 +46,12 @@ pub fn apps() -> Vec<Candidate> {
 /// Start an app by its desktop id.
 pub fn launch(id: &str) {
     let Some(app) = gio::AppInfo::all().into_iter().find(|a| a.id().as_deref() == Some(id)) else {
-        eprintln!("liubai-shell: no app called {id}");
+        eprintln!("recto-shell: no app called {id}");
         return;
     };
     let context = gdk::Display::default().map(|d| d.app_launch_context());
     if let Err(e) = app.launch(&[], context.as_ref()) {
-        eprintln!("liubai-shell: cannot open {id}: {e}");
+        eprintln!("recto-shell: cannot open {id}: {e}");
     }
 }
 
@@ -68,7 +68,7 @@ impl Search {
         handler: Handler,
     ) -> Rc<Search> {
         let window = gtk::Window::builder().application(app).title("Search").build();
-        window.add_css_class("liubai-search");
+        window.add_css_class("recto-search");
         window.set_resizable(false); // follow the content as it shrinks, too
         window.init_layer_shell();
         window.set_layer(Layer::Overlay);
@@ -78,7 +78,7 @@ impl Search {
             window.set_margin(Edge::Top, (monitor.geometry().height() / 5 - 28).max(0));
         }
         window.set_anchor(Edge::Top, true);
-        window.set_namespace(Some("liubai-search"));
+        window.set_namespace(Some("recto-search"));
         window.set_keyboard_mode(KeyboardMode::Exclusive);
 
         let sheet = gtk::Box::new(gtk::Orientation::Vertical, 0);

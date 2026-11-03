@@ -1,6 +1,6 @@
 //! The few design tokens the shell needs in code rather than in the stylesheet:
-//! motion timings and the stroke of the hand-drawn icons. liubai-theme renders
-//! them into <data dir>/liubai/shared/shell/tokens.json.
+//! motion timings and the stroke of the hand-drawn icons. recto-theme renders
+//! them into <data dir>/recto/shared/shell/tokens.json.
 
 use gtk::glib;
 use std::cell::Cell;
@@ -23,7 +23,7 @@ thread_local! {
 
 /// Read the rendered tokens. Called with the stylesheet, so a theme reload picks them up.
 pub fn load() {
-    let path = glib::user_data_dir().join("liubai/shared/shell/tokens.json");
+    let path = glib::user_data_dir().join("recto/shared/shell/tokens.json");
     let tokens = std::fs::read_to_string(path).map(|text| parse(&text)).unwrap_or(FALLBACK);
     TOKENS.with(|t| t.set(tokens));
 }

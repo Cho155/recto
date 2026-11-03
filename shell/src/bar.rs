@@ -65,7 +65,7 @@ fn label(text: &str, class: &str) -> gtk::Label {
 impl Bar {
     pub fn new(app: &gtk::Application, monitor: &gdk::Monitor, handler: Handler) -> Self {
         let window = gtk::Window::builder().application(app).build();
-        window.add_css_class("liubai-bar");
+        window.add_css_class("recto-bar");
         window.init_layer_shell();
         window.set_layer(Layer::Top);
         window.set_monitor(Some(monitor));
@@ -73,7 +73,7 @@ impl Bar {
             window.set_anchor(edge, true);
         }
         window.auto_exclusive_zone_enable();
-        window.set_namespace(Some("liubai-bar"));
+        window.set_namespace(Some("recto-bar"));
         window.set_keyboard_mode(KeyboardMode::None);
 
         let root = hbox(0);

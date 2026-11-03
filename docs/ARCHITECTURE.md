@@ -8,8 +8,8 @@
 | 外壳 | 自研，Rust + GTK4 + gtk4-layer-shell，单进程 | 状态栏、通知服务、OSD（音量／亮度提示）、搜索（启动器）、今日页、锁屏。 |
 | 终端 | foot（默认），server 模式 | 内存占用低，支持透明；多个窗口共享一个进程；Paper 和 Ink 写在同一个配置里，靠信号切换。kitty、alacritty 也提供主题。 |
 | 壁纸 | 程序生成的等高线 | 按每块屏幕的像素尺寸生成 SVG，转 PNG 后由 swaybg 显示；以后可由外壳自绘。 |
-| 主题导出 | `tools/liubai-theme` | 从 `design/tokens.toml` 和 `templates/` 生成 niri、foot、fuzzel、mako、GTK 3/4、GtkSourceView、Qt 6（qt6ct）、kitty、alacritty 和外壳的配置，并负责安装、卸载、切换、壁纸、锁屏。安装的入口是仓库根目录的 `install.sh`。详见 [THEMES.md](THEMES.md)。 |
-| 空闲与锁屏 | swayidle + 主题化的 swaylock | `liubai-theme lock` 用当前主题的颜色锁屏；锁屏不自己实现（D41）。 |
+| 主题导出 | `tools/recto-theme` | 从 `design/tokens.toml` 和 `templates/` 生成 niri、foot、fuzzel、mako、GTK 3/4、GtkSourceView、Qt 6（qt6ct）、kitty、alacritty 和外壳的配置，并负责安装、卸载、切换、壁纸、锁屏。安装的入口是仓库根目录的 `install.sh`。详见 [THEMES.md](THEMES.md)。 |
+| 空闲与锁屏 | swayidle + 主题化的 swaylock | `recto-theme lock` 用当前主题的颜色锁屏；锁屏不自己实现（D41）。 |
 | polkit 认证代理 | polkit-gnome | 已安装时由 niri 配置启动（D42）；常驻约 17 MiB。 |
 | 后备组件 | mako、fuzzel | 通知和搜索都已由外壳提供。mako 只在外壳没运行时由 D-Bus 自动启动；fuzzel 的主题仍会生成，但快捷键已改为外壳的搜索。 |
 
@@ -24,7 +24,7 @@
 
 ## 外壳现状（阶段 4 与审美优化）
 
-`shell/` 是一个 Rust 程序 `liubai-shell`，依赖只有 gtk4 0.11、gtk4-layer-shell 0.8、serde_json 和 libc（libc 本来就是 glib 的依赖）。调试时设 `LIUBAI_DEBUG=1` 可看到系统状态更新。
+`shell/` 是一个 Rust 程序 `recto-shell`，依赖只有 gtk4 0.11、gtk4-layer-shell 0.8、serde_json 和 libc（libc 本来就是 glib 的依赖）。调试时设 `RECTO_DEBUG=1` 可看到系统状态更新。
 
 | 文件 | 职责 |
 | --- | --- |
@@ -93,7 +93,7 @@
 ## 目录规划
 
 ```text
-liubai/
+recto/
 ├── design/
 │   ├── tokens.toml   设计令牌
 │   └── specimen/     样张（设计画布源文件）
@@ -101,10 +101,10 @@ liubai/
 ├── templates/        各应用配置的模板
 ├── install.sh        安装与卸载的入口
 ├── tools/
-│   ├── liubai-theme  生成、安装、卸载、切换主题；壁纸；锁屏
+│   ├── recto-theme  生成、安装、卸载、切换主题；壁纸；锁屏
 │   ├── measure-memory  测内存（PSS、RSS、USS）
 │   └── collect-report  真机测试报告
 ├── build/            生成物（不进 git）
-├── shell/            外壳源码（liubai-shell）
+├── shell/            外壳源码（recto-shell）
 └── reports/          测量记录（内存、帧率、真机报告）
 ```

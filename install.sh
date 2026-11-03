@@ -1,21 +1,21 @@
 #!/usr/bin/env bash
-# Liubai installer: packages, the shell, the theme, and the session.
+# Recto installer: packages, the shell, the theme, and the session.
 #
 #   ./install.sh                  check packages, build, show what will change, then install
 #   ./install.sh --dry-run        only check and show; change nothing
 #   ./install.sh --yes            do not ask (for scripts)
 #   ./install.sh --with-suggested also install the suggested packages (Arch)
 #   ./install.sh --no-packages    skip the package step
-#   ./install.sh --uninstall      remove Liubai and put back the configs it replaced
+#   ./install.sh --uninstall      remove Recto and put back the configs it replaced
 #
 # Run it as yourself, not as root; it asks sudo only to install packages.
-# Existing configs are never overwritten: they are renamed *.liubai-backup-<time>.
+# Existing configs are never overwritten: they are renamed *.recto-backup-<time>.
 
 set -euo pipefail
 
 cd "$(dirname "$0")"
 REPO=$(pwd)
-THEME="$REPO/tools/liubai-theme"
+THEME="$REPO/tools/recto-theme"
 
 # Arch package names (docs/THEMES.md lists what each is for).
 REQUIRED=(niri foot swaybg swaylock swayidle librsvg python libpulse
@@ -63,7 +63,7 @@ if (( UNINSTALL )); then
         note "You are inside a niri session. It keeps running with its current"
         note "settings; log out afterwards (or uninstall from another session)."
     fi
-    if ask "Remove Liubai as listed above?"; then
+    if ask "Remove Recto as listed above?"; then
         python3 "$THEME" uninstall | sed 's/^/  /'
         say "Done. Packages stay installed; remove them with pacman if you like."
     else
@@ -130,7 +130,7 @@ else
 fi
 
 # ── 2. The shell ───────────────────────────────────────────────────────────
-say "2. The shell (liubai-shell)"
+say "2. The shell (recto-shell)"
 if (( DRY )); then
     note "Would build it with: cargo build --release --locked (in shell/)"
 else
@@ -143,6 +143,11 @@ python3 "$THEME" build | sed 's/^/  /'
 note ""
 note "This is what installing changes:"
 python3 "$THEME" install --dry-run | sed 's/^/  /'
+# Already in use (an update), or coming from another desktop (a first install)?
+data="${XDG_DATA_HOME:-$HOME/.local/share}/recto"
+niri_conf="${XDG_CONFIG_HOME:-$HOME/.config}/niri/config.kdl"
+UPDATE=0
+[[ -L "$niri_conf" && "$(readlink "$niri_conf")" == "$data/"* ]] && UPDATE=1
 if ask "Install as listed above?"; then
     python3 "$THEME" install | sed 's/^/  /'
 else
@@ -152,22 +157,28 @@ fi
 
 # ── 4. Start ───────────────────────────────────────────────────────────────
 say "4. Start"
-if [[ -n "${NIRI_SOCKET:-}" ]]; then
-    if ask "You are in niri already. Reload its config and restart the shell now?"; then
+if [[ -n "${NIRI_SOCKET:-}" ]] && (( ! UPDATE )); then
+    # Switching from another desktop: its bar, wallpaper and launcher are still
+    # running in this session, and niri has already picked up Recto's colors and
+    # keys. Only a new login starts Recto cleanly (and stops the old ones).
+    note "Recto is installed. niri has picked up its colors and keys already, but"
+    note "the desktop you came from is still running in this session."
+    note "Log out (Super+Shift+E) and log in again to start Recto."
+elif [[ -n "${NIRI_SOCKET:-}" ]]; then
+    if ask "You are in Recto already. Reload its config and restart the shell now?"; then
         niri msg action load-config-file || true
-        data="${XDG_DATA_HOME:-$HOME/.local/share}/liubai"
-        "$data/bin/liubai-shell" quit 2>/dev/null || true
+        "$data/bin/recto-shell" quit 2>/dev/null || true
         sleep 0.5
-        setsid "$data/bin/liubai-shell" >/dev/null 2>&1 < /dev/null &
-        "$data/bin/liubai-theme" session-start || true
+        setsid "$data/bin/recto-shell" >/dev/null 2>&1 < /dev/null &
+        "$data/bin/recto-theme" session-start || true
         note "Reloaded. The idle lock and the password dialog start with the next login."
     fi
 elif systemctl --user -q is-active niri.service 2>/dev/null; then
     # niri reloads its config file by itself, but runs spawn-at-startup only when
-    # it starts: a session that was already running gets Liubai's look, not its
+    # it starts: a session that was already running gets Recto's look, not its
     # bar, wallpaper or idle lock.
     note "A niri session is already running for this account. It has picked up"
-    note "Liubai's colors and keys, but the bar, wallpaper and idle lock start only"
+    note "Recto's colors and keys, but the bar, wallpaper and idle lock start only"
     note "when niri starts: log out of it (Super+Shift+E) and log in again."
 else
     note "Log out, then choose \"niri\" in your login screen,"

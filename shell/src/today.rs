@@ -141,7 +141,7 @@ fn later(handler: &Handler, event: Event) {
 impl Today {
     pub fn open(app: &gtk::Application, monitor: Option<&gdk::Monitor>, handler: Handler) -> Self {
         let window = gtk::Window::builder().application(app).title(strings::TODAY_TITLE).build();
-        window.add_css_class("liubai-today");
+        window.add_css_class("recto-today");
         window.init_layer_shell();
         window.set_layer(Layer::Overlay);
         if let Some(monitor) = monitor {
@@ -151,7 +151,7 @@ impl Today {
         for edge in [Edge::Top, Edge::Bottom, Edge::Left, Edge::Right] {
             window.set_anchor(edge, true);
         }
-        window.set_namespace(Some("liubai-today"));
+        window.set_namespace(Some("recto-today"));
         // Modal while open: Escape closes it, and typing never leaks to the window behind.
         window.set_keyboard_mode(KeyboardMode::Exclusive);
 

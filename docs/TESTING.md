@@ -9,13 +9,13 @@
 
 日程、Qt 5 主题等放到 1.1。
 
-这份清单是第 1 条的做法：在一台真实的电脑上装好留白，逐项试一遍，再用 `tools/collect-report` 收集内存和帧率。到现在为止，所有测试都是在虚拟机里做的（virgl 显卡、1440×900、缩放 1、没有电池）。
+这份清单是第 1 条的做法：在一台真实的电脑上装好Recto，逐项试一遍，再用 `tools/collect-report` 收集内存和帧率。到现在为止，所有测试都是在虚拟机里做的（virgl 显卡、1440×900、缩放 1、没有电池）。
 
 预计用时：安装 10–20 分钟（视网速），清单 30–40 分钟。
 
 ## 开始之前
 
-- **用一台可以折腾的机器，或者一个新建的用户账户。** 安装脚本不会覆盖已有的配置（会改名为 `*.liubai-backup-<时间>`），卸载时会放回去；但第一次在真机上跑，留一条退路更安心。新建账户最省心：`sudo useradd -m liubai-test && sudo passwd liubai-test`，测完 `sudo userdel -r liubai-test`。
+- **用一台可以折腾的机器，或者一个新建的用户账户。** 安装脚本不会覆盖已有的配置（会改名为 `*.recto-backup-<时间>`），卸载时会放回去；但第一次在真机上跑，留一条退路更安心。新建账户最省心：`sudo useradd -m recto-test && sudo passwd recto-test`，测完 `sudo userdel -r recto-test`。
 - **最好是笔记本**：能测到电池、亮度键、高分屏。有外接显示器的话，多显示器也一起测。
 - **打开 Ctrl+Alt+F2 的文字控制台**：先确认能登录。锁屏或会话出问题时，要从这里救回来（见最后一节）。
 - 需要联网（安装软件包）。
@@ -25,8 +25,8 @@
 在要测试的账户里：
 
 ```sh
-git clone <留白的仓库> liubai    # 或者把项目文件夹拷过去
-cd liubai
+git clone <Recto的仓库> recto    # 或者把项目文件夹拷过去
+cd recto
 ./install.sh --dry-run            # 先看看：缺哪些包、会改哪些文件
 ./install.sh --with-suggested     # 安装：会问两次（装包、改配置），都回车即可
 ```
@@ -146,5 +146,5 @@ tools/collect-report
   ```
 
   这会结束 niri 会话（未保存的内容会丢）。然后按 Ctrl+Alt+F1 回到登录界面。
-- **状态栏没出现**：在终端里运行 `~/.local/share/liubai/bin/liubai-shell`，把输出的错误记下来。
-- **整个桌面不对劲，想退回原样**：在项目文件夹里运行 `./install.sh --uninstall`，会删除留白的文件、放回原来的配置和 GNOME 设置。已经装的软件包不会删。
+- **状态栏没出现**：在终端里运行 `~/.local/share/recto/bin/recto-shell`，把输出的错误记下来。
+- **整个桌面不对劲，想退回原样**：在项目文件夹里运行 `./install.sh --uninstall`，会删除Recto的文件、放回原来的配置和 GNOME 设置。已经装的软件包不会删。

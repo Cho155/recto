@@ -1,6 +1,6 @@
 # 主题系统（阶段 1）
 
-不写外壳，只靠配置和主题，让一套全新的 niri 会话看起来就是留白。
+不写外壳，只靠配置和主题，让一套全新的 niri 会话看起来就是Recto。
 
 **状态**：2026-11-02 在测试虚拟机（Arch，niri 26.04）中验证，清单结果见文末。本机不做测试。
 
@@ -8,13 +8,13 @@
 
 ```text
 design/tokens.toml ──┐
-                     ├─ liubai-theme build ──> build/
+                     ├─ recto-theme build ──> build/
 templates/**  ───────┘                          ├─ shared/  两种主题写在一起（niri 主配置、foot、GTK 4）
                                                 ├─ paper/   纸
                                                 └─ ink/     墨
 
-liubai-theme install ──> ~/.local/share/liubai/{shared,paper,ink,bin,tokens.toml}
-                         ~/.local/share/liubai/current -> paper 或 ink（符号链接）
+recto-theme install ──> ~/.local/share/recto/{shared,paper,ink,bin,tokens.toml}
+                         ~/.local/share/recto/current -> paper 或 ink（符号链接）
                          ~/.config/<app>/... -> 链接到上面的文件
 ```
 
@@ -32,12 +32,12 @@ liubai-theme install ──> ~/.local/share/liubai/{shared,paper,ink,bin,tokens.
 | mako（后备） | 经 `current` 链接；外壳运行时不启动 | `makoctl reload` |
 | GTK 4 | 一个文件：纸为默认，墨写在 `@media (prefers-color-scheme: dark)` 里；窗口标题用衬线（D77） | 设置 `color-scheme`，已打开的 libadwaita 应用实时切换；字体改动在应用重开后生效 |
 | GTK 3 | 经 `current` 链接；同时切换 adw-gtk3 / adw-gtk3-dark | 我们的 CSS 在应用重开后生效 |
-| 外壳 | 经 `current` 读取 `shell/style.css`；动效时长和图标线宽在 `shared/shell/tokens.json` | `liubai-shell reload-style`，实时生效 |
+| 外壳 | 经 `current` 读取 `shell/style.css`；动效时长和图标线宽在 `shared/shell/tokens.json` | `recto-shell reload-style`，实时生效 |
 | kitty / alacritty | 不自动链接，需在各自配置里引用 | kitty 收到 SIGUSR1 重读配置；alacritty 下次重读时生效 |
-| Qt 6（经 qt6ct） | 每个主题一份 qt6ct 配色（`current/qt6ct/liubai.conf`）；共用的 `qt6ct.conf` 设 Fusion 风格、字体和这份配色；niri 配置里设 `QT_QPA_PLATFORMTHEME=qt6ct` | Qt 应用下次启动时用新主题（qt6ct 不支持实时切换） |
-| GtkSourceView（文本编辑器的正文区） | `liubai`（纸）和 `liubai-dark`（墨）两套方案都链接到 `~/.local/share/gtksourceview-{4,5}/styles/`；安装时把 GNOME 文本编辑器设为 `liubai` | 编辑器随系统明暗自动选浅色或深色方案 |
-| 壁纸 | 按每块屏幕的实际分辨率生成 SVG：等高线，或作者的线稿（图版，`design/plates/`，按主题重新上色）；叠上极淡的纸纹，转成 PNG 交给 swaybg；结果缓存在 `~/.cache/liubai/` | 新壁纸显示后再结束旧的 swaybg，避免黑屏闪烁；同时生成当天的锁屏扉页 |
-| 锁屏 | `liubai-theme lock` 用当前主题的颜色和扉页图（壁纸加当天日期）调用 swaylock | 每次锁屏时读取；扉页每天生成一次 |
+| Qt 6（经 qt6ct） | 每个主题一份 qt6ct 配色（`current/qt6ct/recto.conf`）；共用的 `qt6ct.conf` 设 Fusion 风格、字体和这份配色；niri 配置里设 `QT_QPA_PLATFORMTHEME=qt6ct` | Qt 应用下次启动时用新主题（qt6ct 不支持实时切换） |
+| GtkSourceView（文本编辑器的正文区） | `recto`（纸）和 `recto-dark`（墨）两套方案都链接到 `~/.local/share/gtksourceview-{4,5}/styles/`；安装时把 GNOME 文本编辑器设为 `recto` | 编辑器随系统明暗自动选浅色或深色方案 |
+| 壁纸 | 按每块屏幕的实际分辨率生成 SVG：等高线，或作者的线稿（图版，`design/plates/`，按主题重新上色）；叠上极淡的纸纹，转成 PNG 交给 swaybg；结果缓存在 `~/.cache/recto/` | 新壁纸显示后再结束旧的 swaybg，避免黑屏闪烁；同时生成当天的锁屏扉页 |
+| 锁屏 | `recto-theme lock` 用当前主题的颜色和扉页图（壁纸加当天日期）调用 swaylock | 每次锁屏时读取；扉页每天生成一次 |
 
 ## 安装与卸载
 
@@ -45,7 +45,7 @@ liubai-theme install ──> ~/.local/share/liubai/{shared,paper,ink,bin,tokens.
 ./install.sh --dry-run          # 只看：缺哪些包、会改哪些文件
 ./install.sh                    # 装包（Arch，会先问）、编译外壳、预览改动、确认后安装
 ./install.sh --with-suggested   # 连建议的包一起装（GTK 3 和 Qt 主题、授权弹窗、电池和网络等）
-./install.sh --uninstall        # 删掉留白，放回原来的配置和 GNOME 设置（软件包不删）
+./install.sh --uninstall        # 删掉Recto，放回原来的配置和 GNOME 设置（软件包不删）
 ```
 
 真机上的测试步骤见 [真机验证清单](TESTING.md)。
@@ -53,16 +53,16 @@ liubai-theme install ──> ~/.local/share/liubai/{shared,paper,ink,bin,tokens.
 ## 命令
 
 ```sh
-tools/liubai-theme build                 # 生成 build/
-tools/liubai-theme install --dry-run     # 只打印将要做的改动
-tools/liubai-theme install               # 复制到 ~/.local/share/liubai 并链接配置
-tools/liubai-theme switch ink            # 或 paper、auto（按时刻切换）；toggle 在 Paper／Ink 之间切换
-tools/liubai-theme status
-tools/liubai-theme uninstall --dry-run   # 卸载会做什么
-tools/liubai-theme wallpaper --width 2560 --height 1600 --scale 1.5 -o wall.svg
+tools/recto-theme build                 # 生成 build/
+tools/recto-theme install --dry-run     # 只打印将要做的改动
+tools/recto-theme install               # 复制到 ~/.local/share/recto 并链接配置
+tools/recto-theme switch ink            # 或 paper、auto（按时刻切换）；toggle 在 Paper／Ink 之间切换
+tools/recto-theme status
+tools/recto-theme uninstall --dry-run   # 卸载会做什么
+tools/recto-theme wallpaper --width 2560 --height 1600 --scale 1.5 -o wall.svg
 ```
 
-`install` 遇到已有的配置文件，不覆盖，而是改名为 `<文件名>.liubai-backup-<时间>`。
+`install` 遇到已有的配置文件，不覆盖，而是改名为 `<文件名>.recto-backup-<时间>`。
 
 快捷键（写在 niri 配置里）：`Mod+Return` 终端、`Mod+Space` 搜索、`Mod+A` 今日页、`Mod+Shift+T` 切换 Paper／Ink、`Super+Alt+L` 锁屏、`Mod+O` 总览、`Mod+Shift+/` 全部快捷键。音量、麦克风、亮度键交给外壳处理并弹出提示。
 
@@ -86,7 +86,7 @@ tools/liubai-theme wallpaper --width 2560 --height 1600 --scale 1.5 -o wall.svg
 
 | # | 项目 | 结果 |
 | --- | --- | --- |
-| 1 | `liubai-theme build` 生成全部文件 | 通过，一次成功 |
+| 1 | `recto-theme build` 生成全部文件 | 通过，一次成功 |
 | 2 | `niri validate` 校验主配置和两个颜色文件（含背景色、总览背景色、图层阴影、动画写法） | 通过 |
 | 3 | 登录后：等高线壁纸、2px 陶土色焦点框、柔和阴影 | 通过；壁纸按屏幕实际尺寸生成 |
 | 4 | foot：纸色半透明、无标题栏、焦点框不从背后透出 | 通过；但透过 90% 不透明度几乎看不到等高线 |
@@ -101,4 +101,4 @@ tools/liubai-theme wallpaper --width 2560 --height 1600 --scale 1.5 -o wall.svg
 - GTK 4 两套配色分开时，标题栏和正文颜色不一致（D27）。
 - 状态栏按钮文字被默认主题加粗。
 
-仍待处理：gnome-text-editor 等应用的正文区用的是 GtkSourceView 自带的配色方案，与 Paper／Ink 略有差异，可以另做一套 `liubai` 配色方案。
+仍待处理：gnome-text-editor 等应用的正文区用的是 GtkSourceView 自带的配色方案，与 Paper／Ink 略有差异，可以另做一套 `recto` 配色方案。

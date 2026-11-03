@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""collect-report: gather what a real-machine test of Liubai needs, in one folder.
+"""collect-report: gather what a real-machine test of Recto needs, in one folder.
 
-Run it inside a Liubai session (niri with liubai-shell), with one terminal open
+Run it inside a Recto session (niri with recto-shell), with one terminal open
 and nothing else. It takes about three minutes; leave the machine alone while
 it runs. The bar blinks twice: the shell is restarted once to time its frames.
 
@@ -35,8 +35,8 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent
-DATA = Path(os.environ.get("XDG_DATA_HOME") or Path.home() / ".local/share") / "liubai"
-SHELL = DATA / "bin" / "liubai-shell"
+DATA = Path(os.environ.get("XDG_DATA_HOME") or Path.home() / ".local/share") / "recto"
+SHELL = DATA / "bin" / "recto-shell"
 MEASURE = HERE / "measure-memory"
 
 
@@ -125,7 +125,7 @@ def system_info():
         "foot": run(["foot", "--version"]),
         "gtk4": run(["pkg-config", "--modversion", "gtk4"]),
         "packages": packages.splitlines() if packages else None,
-        "liubai_commit": run(["git", "-C", str(REPO), "rev-parse", "--short", "HEAD"]),
+        "recto_commit": run(["git", "-C", str(REPO), "rev-parse", "--short", "HEAD"]),
         "gsk_renderer": os.environ.get("GSK_RENDERER") or "cairo (the shell's default)",
     }
 
@@ -191,7 +191,7 @@ def notify():
     run(["gdbus", "call", "--session", "--dest", "org.freedesktop.Notifications",
          "--object-path", "/org/freedesktop/Notifications",
          "--method", "org.freedesktop.Notifications.Notify",
-         "Liubai test", "0", "", "Frame timing", "A note to time its motion.", "[]", "{}", "3000"])
+         "Recto test", "0", "", "Frame timing", "A note to time its motion.", "[]", "{}", "3000"])
 
 
 def time_frames(out, renderer):
@@ -235,7 +235,7 @@ def proc(mem, name, field="pss_kib"):
 
 
 def summary(info, mems, frames):
-    lines = ["# Liubai on real hardware", ""]
+    lines = ["# Recto on real hardware", ""]
     lines.append(f"- Machine: {info.get('machine') or '–'}; {info.get('cpu') or '–'}; "
                  f"{info.get('memory_mib') or '–'} MiB")
     lines.append(f"- OS: {info.get('os') or '–'}, kernel {info.get('kernel') or '–'}")
@@ -244,14 +244,14 @@ def summary(info, mems, frames):
     for s in info.get("screens") or []:
         lines.append(f"- Screen {s['name']}: {s['pixels'][0]}×{s['pixels'][1]} at {s['refresh_hz']} Hz, "
                      f"scale {s['scale']}")
-    lines.append(f"- {info.get('niri') or 'niri ?'}; Liubai {info.get('liubai_commit') or '?'}; "
+    lines.append(f"- {info.get('niri') or 'niri ?'}; Recto {info.get('recto_commit') or '?'}; "
                  f"renderer {info.get('gsk_renderer')}")
     lines += ["", "## Memory (PSS, MiB)", "",
               "| Moment | Whole desktop | Shell | Shell RSS | niri |", "| --- | --- | --- | --- | --- |"]
     for name, label in (("idle", "Idle"), ("today", "Today open"), ("after", "30 s after closing")):
         m = mems.get(name)
-        lines.append(f"| {label} | {mib((m or {}).get('desktop_pss_kib'))} | {mib(proc(m, 'liubai-shell'))} "
-                     f"| {mib(proc(m, 'liubai-shell', 'rss_kib'))} | {mib(proc(m, 'niri'))} |")
+        lines.append(f"| {label} | {mib((m or {}).get('desktop_pss_kib'))} | {mib(proc(m, 'recto-shell'))} "
+                     f"| {mib(proc(m, 'recto-shell', 'rss_kib'))} | {mib(proc(m, 'niri'))} |")
     lines += ["", "Budget: whole desktop ≤ 400, shell ≤ 100; first-open caches ≤ 5 over idle.", "",
               "## Frames while panels open and close (ms between frames)", "",
               "| Panel | Drawing | Frames | Screen refresh | Median | 90 % | Longest | Late frames |",
@@ -265,7 +265,7 @@ def summary(info, mems, frames):
             else:
                 lines.append(f"| {name} | {renderer} | no frames logged | | | | | |")
     lines += ["", "Smooth means the median equals the screen refresh and few frames are late.",
-              "cairo is the default (less memory); if gl is clearly smoother here, Liubai",
+              "cairo is the default (less memory); if gl is clearly smoother here, Recto",
               "should use it on machines like this one (decision D50).", ""]
     return "\n".join(lines)
 
@@ -279,7 +279,7 @@ def main():
     args = parser.parse_args()
 
     if not os.environ.get("NIRI_SOCKET") or not os.environ.get("WAYLAND_DISPLAY"):
-        print("collect-report: run this inside the Liubai (niri) session.", file=sys.stderr)
+        print("collect-report: run this inside the Recto (niri) session.", file=sys.stderr)
         return 1
     if not SHELL.exists():
         print(f"collect-report: {SHELL} not found; run ./install.sh first.", file=sys.stderr)

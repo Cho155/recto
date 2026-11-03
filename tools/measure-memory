@@ -21,8 +21,8 @@ import sys
 import time
 from pathlib import Path
 
-# The desktop itself: what Liubai starts, not what the user opens.
-DESKTOP = {"niri", "liubai-shell", "foot", "mako", "swaybg", "xwayland-satell",
+# The desktop itself: what Recto starts, not what the user opens.
+DESKTOP = {"niri", "recto-shell", "foot", "mako", "swaybg", "xwayland-satell",
            "systemd", "dbus-broker", "dbus-broker-lau", "dbus-daemon",
            "pipewire", "wireplumber", "pipewire-pulse", "xdg-desktop-por",
            "swayidle", "polkit-gnome-au", "pactl"}
@@ -96,7 +96,7 @@ def main():
 
     procs = sorted(processes(), key=lambda p: p["pss_kib"], reverse=True)
     desktop = [p for p in procs if p["name"] in DESKTOP]
-    shell = next((p for p in procs if p["name"] == "liubai-shell"), None)
+    shell = next((p for p in procs if p["name"] == "recto-shell"), None)
 
     report = {
         "label": args.label,

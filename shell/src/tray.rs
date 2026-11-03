@@ -120,14 +120,14 @@ impl Tray {
                 }
             },
             |_, _| {},
-            |_, _| eprintln!("liubai-shell: another tray watcher is running; the tray stays empty"),
+            |_, _| eprintln!("recto-shell: another tray watcher is running; the tray stays empty"),
         );
         tray
     }
 
     fn serve(self: &Rc<Self>, connection: gio::DBusConnection) {
         let Some(info) = gio::DBusNodeInfo::for_xml(XML).ok().and_then(|n| n.lookup_interface(WATCHER)) else {
-            eprintln!("liubai-shell: tray watcher description is invalid");
+            eprintln!("recto-shell: tray watcher description is invalid");
             return;
         };
         let (on_call, on_prop) = (Rc::downgrade(self), Rc::downgrade(self));
@@ -153,7 +153,7 @@ impl Tray {
             })
             .build();
         if let Err(e) = registered {
-            eprintln!("liubai-shell: cannot serve the tray: {e}");
+            eprintln!("recto-shell: cannot serve the tray: {e}");
             return;
         }
         let _ = connection.emit_signal(None, WATCHER_PATH, WATCHER, "StatusNotifierHostRegistered", None);

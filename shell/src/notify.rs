@@ -78,7 +78,7 @@ impl Server {
                     .ok()
                     .and_then(|node| node.lookup_interface(NAME));
                 let Some(info) = info else {
-                    eprintln!("liubai-shell: notification interface description is invalid");
+                    eprintln!("recto-shell: notification interface description is invalid");
                     return;
                 };
                 let on_notify = on_notify.clone();
@@ -90,7 +90,7 @@ impl Server {
                             invocation.return_value(Some(&(vec!["body", "actions"],).to_variant()))
                         }
                         "GetServerInformation" => invocation.return_value(Some(
-                            &("Liubai", "Liubai", env!("CARGO_PKG_VERSION"), "1.2").to_variant(),
+                            &("Recto", "Recto", env!("CARGO_PKG_VERSION"), "1.2").to_variant(),
                         )),
                         "Notify" => match parse(&params) {
                             Some(incoming) => {
@@ -115,7 +115,7 @@ impl Server {
                     })
                     .build();
                 if let Err(e) = registered {
-                    eprintln!("liubai-shell: cannot serve notifications: {e}");
+                    eprintln!("recto-shell: cannot serve notifications: {e}");
                     return;
                 }
                 if let Some(server) = weak.upgrade() {
@@ -123,7 +123,7 @@ impl Server {
                 }
             },
             |_, _| {},
-            |_, _| eprintln!("liubai-shell: another notification service took over"),
+            |_, _| eprintln!("recto-shell: another notification service took over"),
         );
         server
     }
@@ -139,7 +139,7 @@ impl Server {
     fn emit(&self, signal: &str, args: glib::Variant) {
         if let Some(connection) = self.connection.borrow().as_ref() {
             if let Err(e) = connection.emit_signal(None, PATH, NAME, signal, Some(&args)) {
-                eprintln!("liubai-shell: cannot send {signal}: {e}");
+                eprintln!("recto-shell: cannot send {signal}: {e}");
             }
         }
     }

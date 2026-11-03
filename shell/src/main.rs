@@ -1,14 +1,14 @@
-//! liubai-shell: the bar, Today, notifications and the OSD, in one process.
+//! recto-shell: the bar, Today, notifications and the OSD, in one process.
 //!
-//!   liubai-shell                          start (does nothing if already running)
-//!   liubai-shell toggle-today             open or close Today
-//!   liubai-shell toggle-search            open or close Search
-//!   liubai-shell volume up|down|mute      change the volume and show it
-//!   liubai-shell mic-mute                 mute or unmute the microphone
-//!   liubai-shell brightness up|down       change the screen brightness
-//!   liubai-shell focus [minutes|off]      hold notifications for a while
-//!   liubai-shell reload-style             re-read the stylesheet after a theme switch
-//!   liubai-shell quit
+//!   recto-shell                          start (does nothing if already running)
+//!   recto-shell toggle-today             open or close Today
+//!   recto-shell toggle-search            open or close Search
+//!   recto-shell volume up|down|mute      change the volume and show it
+//!   recto-shell mic-mute                 mute or unmute the microphone
+//!   recto-shell brightness up|down       change the screen brightness
+//!   recto-shell focus [minutes|off]      hold notifications for a while
+//!   recto-shell reload-style             re-read the stylesheet after a theme switch
+//!   recto-shell quit
 //!
 //! A second invocation hands its command to the running shell over D-Bus
 //! (GApplication uniqueness), so niri key bindings can call it directly.
@@ -48,8 +48,8 @@ use std::{
     time::Duration,
 };
 
-const APP_ID: &str = "org.liubai.Shell";
-const USAGE: &str = "usage: liubai-shell [toggle-today | toggle-search | volume up|down|mute | mic-mute | \
+const APP_ID: &str = "org.recto.Shell";
+const USAGE: &str = "usage: recto-shell [toggle-today | toggle-search | volume up|down|mute | mic-mute | \
                      brightness up|down | focus [minutes|off] | reload-style | quit]";
 const DEFAULT_FOCUS_MINUTES: i64 = 60;
 
@@ -91,14 +91,14 @@ fn unix_now() -> i64 {
 }
 
 fn theme_tool() -> String {
-    glib::user_data_dir().join("liubai/bin/liubai-theme").to_string_lossy().into_owned()
+    glib::user_data_dir().join("recto/bin/recto-theme").to_string_lossy().into_owned()
 }
 
 /// Start a helper and let it run; GIO reaps it when it exits.
 fn spawn(argv: &[&str]) {
     let args: Vec<&std::ffi::OsStr> = argv.iter().map(std::ffi::OsStr::new).collect();
     if let Err(e) = gio::Subprocess::newv(&args, gio::SubprocessFlags::NONE) {
-        eprintln!("liubai-shell: cannot run {}: {e}", argv[0]);
+        eprintln!("recto-shell: cannot run {}: {e}", argv[0]);
     }
 }
 
@@ -246,8 +246,8 @@ impl Shell {
     }
 
     fn on_system(&self, update: system::Update) {
-        if std::env::var_os("LIUBAI_DEBUG").is_some() {
-            eprintln!("liubai-shell: system {update:?}");
+        if std::env::var_os("RECTO_DEBUG").is_some() {
+            eprintln!("recto-shell: system {update:?}");
         }
         let changed = {
             let mut status = self.status.borrow_mut();
@@ -337,7 +337,7 @@ impl Shell {
     fn set_theme(self: &Rc<Self>, mode: &str) {
         self.auto_pending.borrow_mut().take();
         spawn(&[&theme_tool(), "switch", mode]);
-        // liubai-theme restyles the shell when it is done; update Today's switch then.
+        // recto-theme restyles the shell when it is done; update Today's switch then.
         let refresh = weak(self, |s, ()| s.refresh_today());
         glib::timeout_add_local_once(Duration::from_millis(1_200), move || refresh(()));
     }
@@ -597,7 +597,7 @@ impl Shell {
                     Some(n) => match n.parse::<i64>() {
                         Ok(minutes) => self.set_focus(Some(minutes)),
                         Err(_) => {
-                            eprintln!("liubai-shell: focus takes minutes or 'off'\n{USAGE}");
+                            eprintln!("recto-shell: focus takes minutes or 'off'\n{USAGE}");
                             return glib::ExitCode::FAILURE;
                         }
                     },
@@ -612,7 +612,7 @@ impl Shell {
             }
             Some("quit") => self.app.quit(),
             Some(other) => {
-                eprintln!("liubai-shell: unknown command '{other}'\n{USAGE}");
+                eprintln!("recto-shell: unknown command '{other}'\n{USAGE}");
                 return glib::ExitCode::FAILURE;
             }
         }

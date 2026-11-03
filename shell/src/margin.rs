@@ -71,7 +71,7 @@ fn text(label: &str, class: &str) -> gtk::Label {
 impl Margin {
     pub fn new(app: &gtk::Application, monitor: Option<&gdk::Monitor>, handler: Handler) -> Margin {
         let window = gtk::Window::builder().application(app).build();
-        window.add_css_class("liubai-margin");
+        window.add_css_class("recto-margin");
         window.set_resizable(false); // follow the content as it shrinks, too
         window.init_layer_shell();
         window.set_layer(Layer::Top);
@@ -80,7 +80,7 @@ impl Margin {
         }
         window.set_anchor(Edge::Top, true);
         window.set_anchor(Edge::Right, true);
-        window.set_namespace(Some("liubai-notifications"));
+        window.set_namespace(Some("recto-notifications"));
         window.set_keyboard_mode(KeyboardMode::None);
 
         // No spacing: the gap below each card is part of its slot, so it closes with it.

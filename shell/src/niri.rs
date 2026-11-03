@@ -33,7 +33,7 @@ pub fn follow_events(on_event: impl Fn(Value) + 'static) {
     glib::spawn_future_local(async move {
         loop {
             if let Err(e) = stream(&on_event).await {
-                eprintln!("liubai-shell: niri events: {e}");
+                eprintln!("recto-shell: niri events: {e}");
             }
             glib::timeout_future(Duration::from_secs(2)).await;
         }
@@ -57,7 +57,7 @@ async fn stream(on_event: &impl Fn(Value)) -> Result<(), String> {
             Ok(v) if v.get("Ok").is_some() => {}
             Ok(v) if v.get("Err").is_some() => return Err(format!("niri refused: {v}")),
             Ok(v) => on_event(v),
-            Err(e) => eprintln!("liubai-shell: unreadable event: {e}"),
+            Err(e) => eprintln!("recto-shell: unreadable event: {e}"),
         }
     }
 }
@@ -78,7 +78,7 @@ pub fn action(action: Value) {
         }
         .await;
         if let Err(e) = result {
-            eprintln!("liubai-shell: niri action: {e}");
+            eprintln!("recto-shell: niri action: {e}");
         }
     });
 }

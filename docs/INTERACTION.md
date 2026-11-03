@@ -46,15 +46,15 @@
 ## 专注模式
 
 - 开启后，普通和低优先级通知不弹出，直接收进历史；紧急通知照常弹出。
-- 入口：今日页的“Start focus”（默认 1 小时），或命令 `liubai-shell focus [分钟|off]`。
+- 入口：今日页的“Start focus”（默认 1 小时），或命令 `recto-shell focus [分钟|off]`。
 - 状态栏显示“Focus until 16:00”（可点击结束）和“3 held”。时间到自动结束，暂存的通知变为未读。
 
 ## 音量和亮度提示（OSD）
 
 - 由外壳执行调节，再显示结果。niri 快捷键改为调用：
-  - `liubai-shell volume up|down|mute`
-  - `liubai-shell mic-mute`
-  - `liubai-shell brightness up|down`
+  - `recto-shell volume up|down|mute`
+  - `recto-shell mic-mute`
+  - `recto-shell brightness up|down`
 - 外壳通过 `wpctl` / `brightnessctl` 调节并读回数值。这样不需要常驻监听 PipeWire。代价是：在别的程序（比如混音器）里改音量，不会弹出提示。
 - 位置在屏幕底部居中，距底 96，宽 320，高 56。
 - 内容是一行：名称（“Volume”／“Brightness”／“Microphone”，次要色）、2 px 细条（已填充部分为正文色，静音时为淡色）、数值（衬线体等宽数字“45%”；静音时显示“Muted”）。
@@ -149,7 +149,7 @@
 
 外壳自己的启动器，取代 fuzzel（决策 D40）。
 
-- **打开**：`Mod+Space` 或 `Mod+D`（`liubai-shell toggle-search`）。再按一次或按 Esc 关闭；启动应用后自动关闭。
+- **打开**：`Mod+Space` 或 `Mod+D`（`recto-shell toggle-search`）。再按一次或按 Esc 关闭；启动应用后自动关闭。
 - **外观**：屏幕上方 1/5 处一张 640 宽的纸页。
   - 左上是衬线体的 “Search”，后面是输入框，占位文字 “Apps and actions”。
   - 结果最多显示 7 行，每行三列：名称、一句说明（应用的 GenericName 或 Comment，次要色）、右侧的类别（“App”／“Action”）。
@@ -165,8 +165,8 @@
 ## Paper／Ink 跟随时间
 
 - 模式有三种：Paper、Ink、Auto。Auto 在 `auto.paper_from`（默认 07:00）到 `auto.ink_from`（默认 19:00）之间用纸，其余时间用墨。时刻写在令牌里，可以修改。暂不按日出日落计算：那需要位置信息。
-- 入口：今日页右上的三段开关 “Paper / Ink / Auto”，或 `liubai-theme switch paper|ink|auto`。模式保存在数据目录的 `mode` 文件里，重新登录后仍然有效。
-- 外壳每分钟走一次时钟时检查一次；到点就调用 `liubai-theme switch auto`，所有应用跟着切换。
+- 入口：今日页右上的三段开关 “Paper / Ink / Auto”，或 `recto-theme switch paper|ink|auto`。模式保存在数据目录的 `mode` 文件里，重新登录后仍然有效。
+- 外壳每分钟走一次时钟时检查一次；到点就调用 `recto-theme switch auto`，所有应用跟着切换。
 
 ## 空闲与锁屏
 
@@ -175,7 +175,7 @@
 
 ## 系统授权
 
-- 需要管理员权限的操作（例如混音器、网络设置里的部分操作）通过 polkit-gnome 弹出密码框。它是 GTK 3 程序，自动使用留白的 GTK 3 配色。外壳暂不自己实现授权代理（决策 D42）。
+- 需要管理员权限的操作（例如混音器、网络设置里的部分操作）通过 polkit-gnome 弹出密码框。它是 GTK 3 程序，自动使用Recto的 GTK 3 配色。外壳暂不自己实现授权代理（决策 D42）。
 
 ## 今日页的日程（只评估，不实现）
 
@@ -190,9 +190,9 @@
 | 搜索：结果变少时窗口跟着缩小 | 修正后通过（D46） |
 | Auto 模式：把墨的开始时间设为两分钟后，外壳到点自动切到墨；恢复设置后又按时切回纸 | 通过 |
 | 今日页三段开关：当前模式高亮 | 通过（`…-ink-today-auto.png`） |
-| 锁屏：`liubai-theme lock` 上锁，用 ydotool 输入密码后解锁 | 通过 |
+| 锁屏：`recto-theme lock` 上锁，用 ydotool 输入密码后解锁 | 通过 |
 | swayidle 随会话启动 | 通过（未等满 10 分钟实测空闲锁屏） |
-| 授权弹窗：从会话里运行 `pkexec`，polkit-gnome 弹出留白配色的密码框，输入密码后返回 0 | 通过（`…-polkit.png`）；测试机的 arch 用户为此加入了 wheel 组 |
+| 授权弹窗：从会话里运行 `pkexec`，polkit-gnome 弹出Recto配色的密码框，输入密码后返回 0 | 通过（`…-polkit.png`）；测试机的 arch 用户为此加入了 wheel 组 |
 | 内存 | 外壳空闲 18.5 MiB，搜索打开 20.8 MiB，关闭后 19.6 MiB；整个桌面约 149 MiB（`reports/memory/2026-11-02-vm-phase4/`） |
 
 测试中发现并修正：搜索窗口不会缩小（D46）；外壳重启后残留 `pactl` 子进程（D47）；没有模式文件时，搜索里会列出切换到当前主题的动作。

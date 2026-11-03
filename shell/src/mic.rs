@@ -53,7 +53,7 @@ pub fn watch(on_change: impl Fn(bool) + 'static) {
     glib::spawn_future_local(async move {
         loop {
             if let Err(why) = follow(&on_change).await {
-                eprintln!("liubai-shell: microphone watch: {why}");
+                eprintln!("recto-shell: microphone watch: {why}");
             }
             // pactl gone (or PipeWire restarting): try again later.
             glib::timeout_future(Duration::from_secs(10)).await;
