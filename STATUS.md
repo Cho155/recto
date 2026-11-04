@@ -22,7 +22,9 @@
 2026-11-05（作者已在自己的账户里换上 Recto，说效果很好）：
 
 - 每开一个终端都会跑一次 fastfetch，来源是作者自己 `~/.bashrc` 第 17 行（Recto 之前就有，不是 Recto 的启动项）。按作者要求，助手删掉了这一行；这是作者当面要求的一次例外，不是改了“不改作者配置”的约定。原来的内容：`if (( $(tput cols) < 90 )); then fastfetch -c ~/.config/fastfetch/compact.jsonc; else fastfetch; fi`。
-- 作者不知道怎么打开应用：搜索（`Super+Space` 或 `Super+D`）早就有，但状态栏上没有鼠标入口，README 也没写快捷键。见“下一步”。
+- 作者不知道怎么打开应用：搜索（`Super+Space` 或 `Super+D`）早就有，但状态栏上没有鼠标入口，README 也没写快捷键。见“下一步”。告诉作者后，作者说“大概是会用了”。
+- 作者问为什么终端用 foot 不用 kitty。按 D4、D13 解释了（foot 服务 3.6 MiB PSS；主题切换原地变色；kitty 的标签和分屏与 niri 的列重复——这一条是当时补的理由；kitty 不显示 sixel，fastfetch 图标会是空白）。作者的 kitty 0.49.2 已装。作者说之后慢慢研究，没有改动。
+- 作者预计之后会有不少要调整的小细节。今天没有在测试机里做任何事，测试机一直关着。
 
 全部在测试虚拟机中验证过。助手没有在作者账户里安装或运行 Recto（见“没做”里第一天的一处例外）；作者什么时候切换，由作者决定。测试机已关机。
 
@@ -64,7 +66,7 @@
 - 通用字体族（serif、sans-serif、monospace）现在指向 Recto 的字体（D99），浏览器里没指定字体的网页会用 Source Serif 4／Inter／Monaspace Xenon。
 - 样张画布里终端还是 IBM Plex Mono（画布本来就要重新发布，见下一步）。
 - **第一版还差**：完整的一轮真机验证（第一轮因为启动顺序没测成，见上）、英文 README（还没写）。
-- 作者账户里还没装 Recto：作者要自己运行 `./install.sh` 切换（README 有“换成 Recto，或换回原来的桌面”一节）。这台机器上需要的包都已装好。
+- 作者账户里已经装上 Recto（作者自己在 2026-11-05 01:28 运行的 `./install.sh`；原来的 niri 配置备份为 `~/.config/niri/config.kdl.recto-backup-20261105-012810`）。助手只读过作者的配置，没有运行安装或外壳；唯一的改动是按作者要求删了 `~/.bashrc` 里的 fastfetch 一行。
 - 样张画布（artifact）和真机清单页的标题、文字里还是旧名“留白／Liubai”（图版候选页已改名），源文件 `design/specimen/project/` 已改名，画布没有重新发布。
 - test 账户里装的还是旧名 Liubai（`~/.local/share/liubai`）；下次在 test 里运行 `start` 会装上 Recto，旧的配置链接会被当成“已有配置”改名备份，旧文件夹留着不碍事。
 - 安装脚本只在测试机里测过“已经装好依赖”的情况；在一台全新的系统上从零安装，要等真机测试（或者开一台新的测试机，需要下载几百 MB 的包，要先问作者）。
@@ -114,10 +116,10 @@
 
 ## 下一步
 
-1. **作者**（2026-11-04 说：马上在自己的账户里开始用）：自己切换：`cd ~/Projects/recto && ./install.sh`，然后注销重新登录；换回原来：`./install.sh --uninstall`，再重新登录。这次安装会先问要不要装 `otf-monaspace`（终端字体，下载约 23 MB）；`noto-fonts-cjk` 和 `fastfetch` 这台机器上已经有了。原来 matugen 生成的 `~/.config/fastfetch/config.jsonc` 会改名备份，卸载时放回。用一段时间，告诉助手哪里质感不够。
+1. **作者**（2026-11-05 起已在自己的账户里日常使用）：把觉得不对的小细节告诉助手。更新：`cd ~/Projects/recto && ./install.sh`；当初的切换说明：`./install.sh`，然后注销重新登录；换回原来：`./install.sh --uninstall`，再重新登录。这次安装会先问要不要装 `otf-monaspace`（终端字体，下载约 23 MB）；`noto-fonts-cjk` 和 `fastfetch` 这台机器上已经有了。原来 matugen 生成的 `~/.config/fastfetch/config.jsonc` 会改名备份，卸载时放回。用一段时间，告诉助手哪里质感不够。
 2. **助手**（2026-11-05 作者的反馈）：让搜索和其他快捷键容易被发现：README 加一张快捷键表（`Super+Space` 搜索、`Super+A` 今日页、`Super+Shift+/` 全部快捷键……），考虑在页眉上放一个可以点开搜索的入口（Noctalia 有，作者习惯用）。
 3. **助手**：下一阶段的主线（作者 2026-11-03 定）是在使用中持续提升质感，并尽量适配更多应用；按作者的使用反馈调整（先在测试机里复现和改，作者重新运行 `./install.sh` 就会更新）。
-4. 要讨论：默认主题用 Auto 还是 Paper；纸色在真机上的亮度（作者第一轮觉得刺眼，当时没有壁纸）。终端字体已定（D98），作者用了觉得不合适再换。
+4. 要讨论：终端要不要换成或允许选 kitty（作者 2026-11-05 提起，之后再研究；要先量 kitty 的内存，并处理主题切换和 sixel 图标）；默认主题用 Auto 还是 Paper；纸色在真机上的亮度（作者第一轮觉得刺眼，当时没有壁纸）。终端字体已定（D98），作者用了觉得不合适再换。
 5. **助手**：写英文 README（截图用 Recto 和默认壁纸）；把样张画布和真机清单页改成新名重新发布。
 6. 完整的一轮真机验证（作者自己的账户里用起来以后，`tools/collect-report` 可以直接在会话里跑），用两组帧率决定 D50（cairo 还是 gl）。
 7. 想换壁纸时：另外两张在 `design/plates/`，其余候选在 `design/plates/candidates/` 和[图版候选页](https://claude.ai/artifact/APXEjbY2mGLDFANaxJAj4m)。
