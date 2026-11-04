@@ -9,6 +9,7 @@
   wallpaper [options]      Write the wallpaper (contours, or your plate) as SVG.
   session-start            Login hook used by the niri config: wallpaper, color scheme.
   lock                     Lock the screen with swaylock in the current theme.
+  logo [--scale S]         Draw fastfetch's logo (the distribution's mark in clay) for both themes.
   uninstall [--dry-run]    Remove Recto's links and files; put back what was there before.
 
 Needs Python 3.11 or newer and nothing outside the standard library.
@@ -61,6 +62,8 @@ TARGETS = [
     ("gtksourceview/recto.xml", "theme"),
     ("qt6ct/recto.conf", "theme"),
     ("qt6ct/qt6ct.conf", "shared"),
+    ("fontconfig/recto.conf", "shared"),
+    ("fastfetch/config.jsonc", "theme"),
 ]
 
 SHELL_BINARY = REPO / "shell" / "target" / "release" / "recto-shell"
@@ -75,6 +78,8 @@ LINKS = [
     ("gtk-3.0/gtk.css", "current/gtk-3.0/gtk.css"),
     ("gtk-4.0/gtk.css", "shared/gtk-4.0/gtk.css"),   # follows color-scheme live
     ("qt6ct/qt6ct.conf", "shared/qt6ct/qt6ct.conf"),   # points at current/qt6ct/recto.conf
+    ("fontconfig/conf.d/50-recto.conf", "shared/fontconfig/recto.conf"),   # CJK faces (D99)
+    ("fastfetch/config.jsonc", "current/fastfetch/config.jsonc"),
 ]
 
 # The same, for files under ~/.local/share. GtkSourceView pairs a light and a
@@ -150,7 +155,8 @@ def context(tokens, theme=None):
     ctx["ink"] = tokens["theme"]["ink"]
     ctx["default"] = tokens["theme"][tokens["meta"]["default_theme"]]
     # data_abs: for configs that do not expand "~" (qt6ct).
-    ctx["paths"] = {"data": tilde(DATA), "data_abs": str(DATA), "config": tilde(CONFIG)}
+    ctx["paths"] = {"data": tilde(DATA), "data_abs": str(DATA), "config": tilde(CONFIG),
+                    "cache_abs": str(CACHE)}
     if theme:
         ctx["t"] = tokens["theme"][theme]
         ctx["theme_name"] = theme
@@ -429,6 +435,10 @@ def cmd_install(args):
     say("set GTK fonts and color scheme with gsettings (the old values are kept for uninstall)")
     if not dry:
         apply_gsettings(tokens, current_theme() or tokens["meta"]["default_theme"], fonts=True)
+    if LOGO_MARK.exists():
+        say(f"draw fastfetch's logo into {tilde(CACHE)}")
+        if not dry:
+            write_logos(tokens)
 
     print()
     print("Not linked automatically. Add these lines if you use them:")
@@ -979,6 +989,7 @@ def cmd_session_start(args):
             quiet(["pkill", sig, "-x", "foot"])
             break
         time.sleep(0.25)
+    write_logos(tokens)   # fastfetch's logo, for this screen's scale; last, as nothing waits on it
 
 
 def cmd_lock(args):
@@ -1018,6 +1029,195 @@ def cmd_lock(args):
         "--inside-clear-color", c("base"), "--ring-clear-color", c("line"),
         "--text-clear-color", c("muted"),
     ])
+
+
+# ── fastfetch's logo ─────────────────────────────────────────────────────
+# The distribution's own mark (Arch ships it in /usr/share/pixmaps), drawn in
+# one colour as a sixel picture, which foot shows sharp at any size. fastfetch
+# prints the file as is (templates/fastfetch) and lays its text out beside the
+# number of cells in [terminal]. The picture is drawn for the terminal's cell
+# size at the screen's scale, so it is made at login, when the scale is known,
+# for both themes. Without the file, fastfetch uses its built-in text logo in
+# the same colour; terminals without sixel leave the space blank.
+
+LOGO_MARK = Path("/usr/share/pixmaps/archlinux-logo.svg")
+LOGO_LEVELS = 8   # shades for the anti-aliased edge; the rest of the picture is clear
+
+
+def logo_path(theme):
+    return CACHE / f"fastfetch-{theme}.six"
+
+
+def font_advance(family):
+    """A monospaced face's advance, in em, read from its file; 0.6 if unknown."""
+    try:
+        res = subprocess.run(["fc-match", "-f", "%{file}", family], capture_output=True,
+                             text=True, timeout=5)
+        data = Path(res.stdout.strip()).read_bytes()
+        count = struct.unpack(">H", data[4:6])[0]
+        tables = {data[12 + 16 * i:16 + 16 * i]: struct.unpack(">I", data[20 + 16 * i:24 + 16 * i])[0]
+                  for i in range(count)}
+        upm = struct.unpack(">H", data[tables[b"head"] + 18:tables[b"head"] + 20])[0]
+        advance = struct.unpack(">H", data[tables[b"hhea"] + 10:tables[b"hhea"] + 12])[0]
+        return advance / upm
+    except (OSError, subprocess.SubprocessError, KeyError, struct.error, ZeroDivisionError):
+        return 0.6
+
+
+def terminal_cell(tokens, scale):
+    """foot's cell in pixels at this scale, from the font tokens.
+
+    Rounded down, so the picture is never larger than its cells.
+    """
+    f = tokens["font"]
+    px = 96 / 72 * scale
+    return (math.floor(font_advance(f["mono"]) * f["pt"]["terminal"] * px),
+            math.floor(f["pt"]["terminal_line"] * px))
+
+
+def write_logos(tokens, scale=None, strict=False):
+    """Draw fastfetch's logo for both themes, unless it is already drawn.
+
+    At login and install a problem only means no picture (fastfetch then uses
+    its text logo), so it is passed over; `recto-theme logo` reports it.
+    """
+    try:
+        draw_logos(tokens, scale)
+    except (Failure, OSError, subprocess.SubprocessError, ValueError, struct.error) as e:
+        if strict:
+            raise Failure(f"fastfetch's logo: {e}")
+
+
+def draw_logos(tokens, scale):
+    if not LOGO_MARK.exists() or shutil.which("rsvg-convert") is None:
+        return
+    if scale is None:
+        scale = max((s for *_, s in niri_outputs()), default=1.0)
+    cw, ch = terminal_cell(tokens, scale)
+    cols, rows = tokens["terminal"]["logo_columns"], tokens["terminal"]["logo_rows"]
+    for theme in THEMES:
+        t = tokens["theme"][theme]
+        key = repr((str(LOGO_MARK), LOGO_MARK.stat().st_mtime_ns, t["accent"], t["base"],
+                    cols * cw, rows * ch, LOGO_LEVELS))
+        path, stamp = logo_path(theme), logo_path(theme).with_suffix(".key")
+        if path.exists() and stamp.exists() and stamp.read_text() == key:
+            continue
+        svg = mark_svg(LOGO_MARK, t["accent"], cols * cw, rows * ch)
+        res = subprocess.run(["rsvg-convert"], input=svg.encode(), capture_output=True, timeout=30)
+        if res.returncode:
+            raise Failure("rsvg-convert: " + res.stderr.decode(errors="replace").strip())
+        CACHE.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_suffix(".tmp")
+        tmp.write_text(sixel(png_alpha(res.stdout), t["accent"], t["base"]), encoding="ascii")
+        os.replace(tmp, path)
+        stamp.write_text(key)
+
+
+def mark_svg(path, color, width, height):
+    """The first shape of an SVG mark, alone and in one colour, at width x height.
+
+    Distribution logos such as /usr/share/pixmaps/archlinux-logo.svg put the
+    mark first and the trademark letters after it; only the mark is kept.
+    """
+    try:
+        root = ElementTree.parse(path).getroot()
+    except (OSError, ElementTree.ParseError) as e:
+        raise Failure(f"{path}: {e}")
+    view = root.get("viewBox")
+    shape = next((el for el in root.iter() if el.tag.rsplit("}", 1)[-1] == "path" and el.get("d")), None)
+    if not view or shape is None:
+        raise Failure(f"{path}: no viewBox or no path")
+    rule = html.escape(shape.get("fill-rule", "nonzero"))
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
+            f'viewBox="{html.escape(view)}"><path d="{html.escape(shape.get("d"))}" '
+            f'fill="{html.escape(color)}" fill-rule="{rule}"/></svg>')
+
+
+def png_alpha(data):
+    """Alpha of an 8-bit RGBA PNG (what rsvg-convert writes), as rows of 0..255."""
+    import zlib
+    pos, idat = 8, b""
+    width = height = 0
+    while pos < len(data):
+        length, kind = struct.unpack(">I4s", data[pos:pos + 8])
+        body = data[pos + 8:pos + 8 + length]
+        if kind == b"IHDR":
+            width, height, depth, ctype, _, _, interlace = struct.unpack(">IIBBBBB", body)
+            if (depth, ctype, interlace) != (8, 6, 0):
+                raise Failure("expected an 8-bit RGBA PNG from rsvg-convert")
+        elif kind == b"IDAT":
+            idat += body
+        pos += 12 + length
+    raw, stride = zlib.decompress(idat), width * 4
+    rows, prev = [], bytearray(stride)
+    for r in range(height):
+        start = r * (stride + 1)
+        kind, line = raw[start], bytearray(raw[start + 1:start + 1 + stride])
+        if kind == 1:
+            for i in range(4, stride):
+                line[i] = (line[i] + line[i - 4]) & 255
+        elif kind == 2:
+            for i in range(stride):
+                line[i] = (line[i] + prev[i]) & 255
+        elif kind == 3:
+            for i in range(stride):
+                line[i] = (line[i] + ((line[i - 4] if i >= 4 else 0) + prev[i]) // 2) & 255
+        elif kind == 4:
+            for i in range(stride):
+                a = line[i - 4] if i >= 4 else 0
+                b, c = prev[i], (prev[i - 4] if i >= 4 else 0)
+                p = a + b - c
+                pa, pb, pc = abs(p - a), abs(p - b), abs(p - c)
+                line[i] = (line[i] + (a if pa <= pb and pa <= pc else b if pb <= pc else c)) & 255
+        rows.append(line[3::4])
+        prev = line
+    return rows
+
+
+def sixel(alpha, color, background):
+    """A one-colour picture as sixel. Edge pixels are shades between the colour
+    and the background; pixels that are not drawn stay transparent."""
+    fg, bg = parse_hex(color, "logo")[0], parse_hex(background, "logo")[0]
+    fg = [int(fg[i:i + 2], 16) for i in (0, 2, 4)]
+    bg = [int(bg[i:i + 2], 16) for i in (0, 2, 4)]
+    height, width = len(alpha), len(alpha[0])
+    # P1=9: square pixels; P2=1: transparent background. Then the size, 1:1.
+    out = [f'\x1bP9;1q"1;1;{width};{height}']
+    for n in range(1, LOGO_LEVELS + 1):
+        k = n / LOGO_LEVELS
+        out.append(f"#{n};2;" + ";".join(str(round((b + (f - b) * k) * 100 / 255))
+                                           for f, b in zip(fg, bg)))
+    level = [[(a * LOGO_LEVELS + 127) // 255 for a in row] for row in alpha]
+    for top in range(0, height, 6):
+        band = level[top:top + 6]
+        runs = []
+        for n in range(1, LOGO_LEVELS + 1):
+            cols = [sum(1 << k for k, row in enumerate(band) if row[x] == n) for x in range(width)]
+            while cols and not cols[-1]:
+                cols.pop()
+            if not cols:
+                continue
+            text, x = [f"#{n}"], 0
+            while x < len(cols):
+                end = x
+                while end < len(cols) and cols[end] == cols[x]:
+                    end += 1
+                ch = chr(63 + cols[x])
+                text.append(f"!{end - x}{ch}" if end - x > 3 else ch * (end - x))
+                x = end
+            runs.append("".join(text))
+        out.append("$".join(runs) + "-")
+    out.append("\x1b\\")
+    return "".join(out)
+
+
+def cmd_logo(args):
+    tokens = load_tokens(args.tokens)
+    if not LOGO_MARK.exists():
+        raise Failure(f"no mark to draw: {LOGO_MARK} is missing")
+    write_logos(tokens, args.scale, strict=True)
+    for theme in THEMES:
+        print(f"{theme}: {tilde(logo_path(theme))}")
 
 
 # ── uninstall ─────────────────────────────────────────────────────────────
@@ -1109,6 +1309,10 @@ def main(argv=None):
     sub.add_parser("session-start", help="login hook: wallpaper and color scheme").set_defaults(
         func=cmd_session_start)
     sub.add_parser("lock", help="lock the screen in the current theme").set_defaults(func=cmd_lock)
+
+    p = sub.add_parser("logo", help="draw fastfetch's logo for both themes (done at login)")
+    p.add_argument("--scale", type=float, help="screen scale (default: from niri, else 1)")
+    p.set_defaults(func=cmd_logo)
 
     p = sub.add_parser("uninstall", help="remove Recto's links and files, put back what was there")
     p.add_argument("--dry-run", action="store_true", help="print what would change, change nothing")

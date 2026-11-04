@@ -20,11 +20,11 @@ THEME="$REPO/tools/recto-theme"
 # Arch package names (docs/THEMES.md lists what each is for).
 REQUIRED=(niri foot swaybg swaylock swayidle librsvg python libpulse
           gtk4 gtk4-layer-shell rust
-          adobe-source-serif-fonts inter-font ttf-ibm-plex
+          adobe-source-serif-fonts inter-font otf-monaspace
           mako fuzzel)
 SUGGESTED=(adw-gtk-theme qt6ct polkit-gnome upower networkmanager fcitx5
            xdg-desktop-portal-gnome xdg-desktop-portal-gtk xwayland-satellite
-           wireplumber brightnessctl)
+           wireplumber brightnessctl noto-fonts-cjk fastfetch)
 
 YES=0 DRY=0 PACKAGES=1 SUGGEST=0 UNINSTALL=0
 for arg in "$@"; do
@@ -102,7 +102,8 @@ if (( PACKAGES )) && command -v pacman >/dev/null; then
         if (( ${#extra[@]} )); then
             note "Suggested, not installed: ${extra[*]}"
             note "(./install.sh --with-suggested adds them: the GTK 3 and Qt themes,"
-            note " the password dialog, battery and network status, input methods...)"
+            note " the password dialog, battery and network status, input methods,"
+            note " Chinese, Japanese and Korean fonts...)"
         fi
     fi
 elif (( PACKAGES )); then
@@ -116,7 +117,7 @@ elif (( PACKAGES )); then
         pkg-config --exists gtk4-layer-shell-0 || absent+=("gtk4-layer-shell (development files)")
     fi
     if command -v fc-list >/dev/null; then
-        for font in "Source Serif 4" "Inter" "IBM Plex Mono"; do
+        for font in "Source Serif 4" "Inter" "Monaspace Xenon"; do
             fc-list : family | grep -qi "^$font" || absent+=("font: $font")
         done
     fi

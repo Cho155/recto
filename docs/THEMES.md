@@ -37,6 +37,8 @@ recto-theme install ──> ~/.local/share/recto/{shared,paper,ink,bin,tokens.to
 | Qt 6（经 qt6ct） | 每个主题一份 qt6ct 配色（`current/qt6ct/recto.conf`）；共用的 `qt6ct.conf` 设 Fusion 风格、字体和这份配色；niri 配置里设 `QT_QPA_PLATFORMTHEME=qt6ct` | Qt 应用下次启动时用新主题（qt6ct 不支持实时切换） |
 | GtkSourceView（文本编辑器的正文区） | `recto`（纸）和 `recto-dark`（墨）两套方案都链接到 `~/.local/share/gtksourceview-{4,5}/styles/`；安装时把 GNOME 文本编辑器设为 `recto` | 编辑器随系统明暗自动选浅色或深色方案 |
 | 壁纸 | 按每块屏幕的实际分辨率生成 SVG：等高线，或作者的线稿（图版，`design/plates/`，按主题重新上色）；叠上极淡的纸纹，转成 PNG 交给 swaybg；结果缓存在 `~/.cache/recto/` | 新壁纸显示后再结束旧的 swaybg，避免黑屏闪烁；同时生成当天的锁屏扉页 |
+| 字体回退（fontconfig） | 一个文件，链接为 `~/.config/fontconfig/conf.d/50-recto.conf`：通用字体族（serif、sans-serif、monospace）指向 Recto 的字体，每款字体后面接同类的中文字体（D99） | 不随主题变；应用重开后生效 |
+| fastfetch | 每个主题一份，经 `current` 链接；图标是系统自带的发行版标志（Arch 在 `/usr/share/pixmaps/archlinux-logo.svg`），纯陶土色的 sixel 图片，登录和安装时按屏幕缩放画好，放在 `~/.cache/recto/fastfetch-{paper,ink}.six`；没有这个文件时，fastfetch 用自带的字符图标，也是陶土色（D100） | 下次运行时用新主题 |
 | 锁屏 | `recto-theme lock` 用当前主题的颜色和扉页图（壁纸加当天日期）调用 swaylock | 每次锁屏时读取；扉页每天生成一次 |
 
 ## 安装与卸载
@@ -75,8 +77,8 @@ tools/recto-theme wallpaper --width 2560 --height 1600 --scale 1.5 -o wall.svg
 | 必需 | `niri` `foot` `swaybg` `swaylock` `swayidle` `librsvg`（提供 rsvg-convert） `python`（≥ 3.11） `libpulse`（提供 pactl） |
 | 外壳编译 | `rust` `gtk4` `gtk4-layer-shell` |
 | 后备 | `mako`（外壳没运行时的通知） `fuzzel` |
-| 字体 | `adobe-source-serif-fonts`（Source Serif 4） `inter-font` `ttf-ibm-plex` |
-| 建议 | `adw-gtk-theme`（让 GTK 3 应用也用上配色） `qt6ct`（让 Qt 6 应用也用上配色） `polkit-gnome`（授权弹窗） `upower` `networkmanager` `fcitx5` `xdg-desktop-portal-gnome` `xdg-desktop-portal-gtk` `xwayland-satellite` `wireplumber` `brightnessctl` `playerctl` |
+| 字体 | `adobe-source-serif-fonts`（Source Serif 4） `inter-font` `otf-monaspace`（Monaspace Xenon，终端） |
+| 建议 | `adw-gtk-theme`（让 GTK 3 应用也用上配色） `qt6ct`（让 Qt 6 应用也用上配色） `polkit-gnome`（授权弹窗） `upower` `networkmanager` `fcitx5` `xdg-desktop-portal-gnome` `xdg-desktop-portal-gtk` `xwayland-satellite` `wireplumber` `brightnessctl` `playerctl` `noto-fonts-cjk`（中文、日文、韩文） `fastfetch` |
 
 授权弹窗由 polkit-gnome 提供：装上即可，niri 配置会在登录时自动启动它。
 

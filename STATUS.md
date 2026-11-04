@@ -1,6 +1,6 @@
 # 项目状态
 
-更新：2026-11-03（第二天，第八轮之后，今天最后一轮）。项目已改名 **Recto**（原名“留白／Liubai”，D94），目录是 `~/Projects/recto`。阶段 0–3 完成，阶段 4 大部分完成。第一版（D86）还差：真机验证完整一轮、英文 README；许可证 MIT（D90）、安装脚本已完成。
+更新：2026-11-04（第三天，第一轮）。项目已改名 **Recto**（原名“留白／Liubai”，D94），目录是 `~/Projects/recto`。阶段 0–3 完成，阶段 4 大部分完成。第一版（D86）还差：真机验证完整一轮、英文 README；许可证 MIT（D90）、安装脚本已完成。
 
 今天的八轮：
 
@@ -13,6 +13,12 @@
 7. 第七轮：作者提醒审美参照是西方的书籍和出版，不是中式审美，写进理念和设计语言（D91），换掉“朱批”“手卷”等叫法；`start` 和 `install.sh` 发现 niri 已在运行时会说明并处理（真机第一轮的问题）；图版分成线稿、素描、油画三种，支持 JPEG 和铺满（D92）；从克利夫兰美术馆和 SMK 的开放获取库挑了 10 件 CC0／公有领域作品，在测试机里做成 Paper／Ink 两套桌面截图，等作者挑（D93）。
 8. 第八轮：改名 Recto（D94）；默认壁纸是 Hammershøi 的油画，Chardin 和 Corot 作备选（D95）；作者要在自己的账户里日常使用 Recto，由作者自己运行 `./install.sh` 切换、`--uninstall` 换回，助手不改作者的配置（D96）；第一次从别的桌面切过来时安装只提示重新登录。测试机里完整演练过“默认 niri → 安装 → 重新登录 → Ink → 换回原配置”，46 个单元测试通过。
 
+2026-11-04 第一轮（作者要开始在自己的账户里用 Recto，先做三件事）：
+
+1. **fastfetch**（D100）：图标是系统自带的 Arch 标志，纯陶土色的 sixel 图片，登录和安装时按屏幕缩放画好；键名斜体陶土色。试过字符拼图和 fastfetch 自带的 sixel，都不理想（见 D100）。
+2. **终端字体**（D98）：之前没做过美化，还是 IBM Plex Mono 10.5。比较了五款后换成 Monaspace Xenon 10 pt（带衬线的打字机风格），行高放宽到 14.25 pt。
+3. **中文渲染**（D99）：之前没有处理，汉字会落到 Noto 的韩文字形或文泉驿黑体上。现在有 fontconfig 规则：衬线接 Noto Serif CJK SC、无衬线接 Noto Sans CJK SC、等宽接 Noto Sans Mono CJK SC；终端里汉字 11.5 pt，填满两格。
+
 全部在测试虚拟机中验证过。助手没有在作者账户里安装或运行 Recto（见“没做”里第一天的一处例外）；作者什么时候切换，由作者决定。测试机已关机。
 
 ## 现在能用的
@@ -24,7 +30,8 @@
 | 外壳 `recto-shell` | 状态栏（页眉：衬线、罗马数字工作区、斜体日期、旧体数字时钟）、今日页（整页；正在播放）、通知（页边纸条，陶土色红字标注）、音量／麦克风／亮度提示、专注模式、搜索（索引）、托盘（可用键盘） | `docs/INTERACTION.md`、`docs/ARCHITECTURE.md` |
 | 动效 | 面板从来处进出、只移动 6 px；通知原地放下、其他纸条平滑让位；开窗像一张纸落到桌上（niri 着色器） | `docs/DESIGN-LANGUAGE.md` 动效一节 |
 | 材质与排版 | Source Serif 4 为主：小型大写、旧体数字、光学尺寸；小圆角（6／3／2）；1 px 陶土焦点线（窗口和按钮一致）；当前窗口阴影略深；自绘细线图标；纸条样式的提示气泡 | D55–D58、D63–D67、D74、D80 |
-| 应用 | GTK 3/4 配色与衬线窗口标题；文本编辑器正文区的 `recto` 配色；Qt 6 配色；GNOME 文档字体为衬线 | `docs/THEMES.md`、D75、D77、D83 |
+| 应用 | GTK 3/4 配色与衬线窗口标题；文本编辑器正文区的 `recto` 配色；Qt 6 配色；GNOME 文档字体为衬线；fastfetch（陶土色 Arch 图标） | `docs/THEMES.md`、D75、D77、D83、D100 |
+| 字体 | 终端 Monaspace Xenon 10 pt、行高 14.25 pt；中文回退到 Noto CJK SC（衬线、无衬线、等宽各配一款），对外壳、GTK、Qt、终端、浏览器都有效 | `docs/DESIGN-LANGUAGE.md` 字体一节、D98、D99 |
 | 会话 | swayidle 空闲锁屏、polkit-gnome 授权弹窗、foot 服务进程 | `templates/niri/config.kdl` |
 | 安装与测试 | `./install.sh`（依赖检查、编译、预览、安装、`--uninstall`；从别的桌面第一次切过来时提示重新登录）；真机验证清单；`tools/collect-report` 一条命令收集机器信息、内存和两种渲染器的帧率 | `docs/TESTING.md`、`docs/THEMES.md`、D88、D89 |
 
@@ -34,7 +41,7 @@
 - **外壳内存**：空闲约 24 MiB PSS（RSS 41–51 MiB，视会话里用过的东西而定）；整页今日页打开时多约 17 MiB，关闭后释放；反复开关不增长（D61）。
 - **整个桌面空闲**：166–174 MiB，预算 400 MiB（`reports/memory/2026-11-03-vm-polish/`）。
 - **动效帧率**：通知、音量提示满帧（75 Hz）；搜索的第一帧晚一两帧；整页今日页刚出现时有几帧热身（中位数 15–23 ms，见 D87），真机上用 `collect-report` 比较 cairo 和 gl（`reports/motion/2026-11-03-vm/`）。
-- **截图**：`docs/screenshots/`，38 张。改名后的默认桌面（Hammershøi）见 `2026-11-03-vm-recto-default-paper.png`、`…-ink.png`；古典风格见 `2026-11-03-vm-classical-*.png`，另有 `…-today-now-playing.png`、`…-text-editor-*.png`、`…-qt6ct.png`、`…-plate-test-drawing.png`（叶子是测试用的线稿，不随项目分发）、`…-lock-title-page.png`。
+- **截图**：`docs/screenshots/`，42 张。2026-11-04 新增：`2026-11-04-vm-fastfetch-paper.png`、`…-fastfetch-ink.png`、`…-terminal-fonts.png`（五款终端字体的对比，Chinese 一行是改之前的回退）、`…-cjk-notification.png`（中文通知）。改名后的默认桌面（Hammershøi）见 `2026-11-03-vm-recto-default-paper.png`、`…-ink.png`；古典风格见 `2026-11-03-vm-classical-*.png`，另有 `…-today-now-playing.png`、`…-text-editor-*.png`、`…-qt6ct.png`、`…-plate-test-drawing.png`（叶子是测试用的线稿，不随项目分发）、`…-lock-title-page.png`。
 - **样张画布**：https://claude.ai/artifact/LsCAAp3mUTsEYSnUoPumiz（私有；第 13 版；源文件在 `design/specimen/project/`）。
 
 ## 真机第一轮（2026-11-03 傍晚，ThinkPad X230，test 账户）
@@ -47,6 +54,10 @@
 
 ## 没做 / 已知问题
 
+- 2026-11-04 的三项只在测试机里看过（1440×900，缩放 1；fastfetch 的图标另在缩放 2 下试过），没在真机上看过。
+- fastfetch 的图标按登录时的屏幕缩放画：几块屏幕缩放不同时，按最大的画；在 foot 里用 Ctrl+减号缩小字号后，图会比留给它的 26×12 格大，盖住右边一点文字（放大没有问题）。kitty 不支持 sixel，图标位置会是空白（没测过）；Linux 控制台里是空白（测过，不出乱码）。
+- 通用字体族（serif、sans-serif、monospace）现在指向 Recto 的字体（D99），浏览器里没指定字体的网页会用 Source Serif 4／Inter／Monaspace Xenon。
+- 样张画布里终端还是 IBM Plex Mono（画布本来就要重新发布，见下一步）。
 - **第一版还差**：完整的一轮真机验证（第一轮因为启动顺序没测成，见上）、英文 README（还没写）。
 - 作者账户里还没装 Recto：作者要自己运行 `./install.sh` 切换（README 有“换成 Recto，或换回原来的桌面”一节）。这台机器上需要的包都已装好。
 - 样张画布（artifact）和真机清单页的标题、文字里还是旧名“留白／Liubai”（图版候选页已改名），源文件 `design/specimen/project/` 已改名，画布没有重新发布。
@@ -73,13 +84,14 @@
 - polkit-gnome 常驻约 11–17 MiB，是可以优化的大头。
 - 所有测量都在虚拟机（virgl 显卡）里完成；在真机上要重新测量。
 
-## 测试机现状（`~/VMs/liubai-arch/`，2026-11-03 第八轮结束时已关机）
+## 测试机现状（`~/VMs/liubai-arch/`，2026-11-04 第一轮结束时已关机）
 
 - 启动：`./start.sh`；执行命令：`./vm '<命令>'`；同步项目：`./sync.sh`（不覆盖测试机里的 `build/` 和 `shell/target/`）。
 - 已安装：niri 26.04 一套、Rust 工具链、PipeWire、UPower、NetworkManager（取代了 systemd-networkd）、fcitx5（配置了 us 和 de 两种键盘布局）、nm-applet、ydotool、swayidle、polkit-gnome。2026-11-03 新增：imagemagick（拼慢放截图）、python-fonttools（查字体的 OpenType 特性）、qt6ct（测 Qt 主题）、python-gobject（跑假播放器）。
 - 测试机里装的是最新的构建和配置（用 `./install.sh` 装的，`gsettings-before.json` 里记的是 Adwaita 的默认值）；当前主题模式是 Auto。
 - 2026-11-03 第六轮：测试机里也有一个 `test` 账户（无密码、无 sudo，`~/bin/insession` 已拷入）和 `/home/shared`（`start`、`finish`、`recto.bundle`、test 的副本），用来演练真机流程；装了 git。tty1 的自动登录已改回 arch。
 - 2026-11-03 第七轮：`~/art/` 里有图版候选的原图（`orig/`）、处理后的图（`plates/`）、截图（`shots/`）和渲染脚本 `render-plates.py`（逐张换壁纸、截全屏；先启动 ydotoold、停掉 swayidle）。test 账户装着 2e593fc 之后的 Recto，演练过“niri 已在运行时运行 `start`”（`start --no-packages`，`RECTO_LAUNCH` 可替换最后的 `exec niri-session`）。
+- 2026-11-04 第一轮：新装 fastfetch、noto-fonts-cjk（这两个从本机的软件包缓存拷进去，没有下载）、otf-monaspace，以及比较用的 otf-libertinus、otf-latin-modern、adobe-source-code-pro-fonts。`~/fontspec/` 是字体和 fastfetch 的截图，`~/specimen.sh`、`~/capture*.sh`、`~/ff2.sh` 等是截图脚本（用 `--app-id=spec` 开一个 foot，截完关掉）。当前模式 Auto，缩放 1。
 - 2026-11-03 第八轮：arch 账户里装的是改名后的 Recto（`~/recto`，数据在 `~/.local/share/recto`），默认壁纸 Hammershøi；`~/.config/niri/` 里有一份 niri 默认配置的备份 `config.kdl.recto-backup-*`（演练“从别的桌面切过来”用的）。旧的 `~/liubai` 副本还在，可以删。重启会话用 `niri msg action quit`，**不要**紧接着再手动重启 getty@tty1：自动登录已经会重新进来，两次登录撞在一起会让新会话被收掉。
 - 测试专用的改动：
   - tty1 自动登录进 niri；
@@ -97,9 +109,9 @@
 
 ## 下一步
 
-1. **作者**（2026-11-03 说：周末有两场比赛，打完再换上开始用）：想用的时候自己切换：`cd ~/Projects/recto && ./install.sh`，然后注销重新登录；换回原来：`./install.sh --uninstall`，再重新登录。用一段时间，告诉助手哪里质感不够。
+1. **作者**（2026-11-04 说：马上在自己的账户里开始用）：自己切换：`cd ~/Projects/recto && ./install.sh`，然后注销重新登录；换回原来：`./install.sh --uninstall`，再重新登录。这次安装会先问要不要装 `otf-monaspace`（终端字体，下载约 23 MB）；`noto-fonts-cjk` 和 `fastfetch` 这台机器上已经有了。原来 matugen 生成的 `~/.config/fastfetch/config.jsonc` 会改名备份，卸载时放回。用一段时间，告诉助手哪里质感不够。
 2. **助手**：下一阶段的主线（作者 2026-11-03 定）是在使用中持续提升质感，并尽量适配更多应用；按作者的使用反馈调整（先在测试机里复现和改，作者重新运行 `./install.sh` 就会更新）。
-3. 要讨论：默认主题用 Auto 还是 Paper；纸色在真机上的亮度（作者第一轮觉得刺眼，当时没有壁纸）；终端字体（候选 Libertinus Mono、Courier Prime）。
+3. 要讨论：默认主题用 Auto 还是 Paper；纸色在真机上的亮度（作者第一轮觉得刺眼，当时没有壁纸）。终端字体已定（D98），作者用了觉得不合适再换。
 4. **助手**：写英文 README（截图用 Recto 和默认壁纸）；把样张画布和真机清单页改成新名重新发布。
 5. 完整的一轮真机验证（作者自己的账户里用起来以后，`tools/collect-report` 可以直接在会话里跑），用两组帧率决定 D50（cairo 还是 gl）。
 6. 想换壁纸时：另外两张在 `design/plates/`，其余候选在 `design/plates/candidates/` 和[图版候选页](https://claude.ai/artifact/APXEjbY2mGLDFANaxJAj4m)。

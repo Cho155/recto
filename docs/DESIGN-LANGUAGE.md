@@ -68,9 +68,11 @@ Anthropic 的品牌字体是商业授权，不能随项目分发。全部采用�
 | --- | --- | --- | --- |
 | 衬线 | Source Serif 4 | 外壳里所有要读的文字：状态栏、今日页、通知、搜索、托盘、音量提示 | 外壳内按像素阶梯 |
 | 无衬线 | Inter | GTK 应用的界面（经 gsettings）、后备启动器 fuzzel | 界面 10.5 pt，启动器 12 pt |
-| 等宽（终端） | IBM Plex Mono | 终端、代码 | 10.5 pt |
+| 等宽（终端） | Monaspace Xenon（D98） | 终端、代码 | 10 pt，行高 14.25 pt |
 
-其他文字（如中文）的渲染由单独的回退层处理，不在这里定义。
+Monaspace Xenon 是带衬线的等宽体，有打字机稿的味道，笔画结实，低分辨率屏幕上也清楚；有真正的斜体和粗体。字面大，10 pt 读起来和 IBM Plex Mono 10.5 pt 一样大；行距放宽到 1.4 倍左右，像书页而不是表格。
+
+中文、日文、韩文（D99）：上面三款字体都没有汉字，各自后面接一款同类的 CJK 字体，衬线接衬线、等宽接等宽：Source Serif 4 → Noto Serif CJK SC（宋体），Inter → Noto Sans CJK SC（黑体），Monaspace Xenon → Noto Sans Mono CJK SC。用 SC（简体中文的字形和标点位置）；令牌是 `font.cjk`。终端里汉字用 11.5 pt，正好填满两个字符格，不留缝。规则写在 fontconfig 里（`templates/fontconfig/recto.conf`），所以外壳、GTK、Qt、终端、浏览器都一样。
 
 GNOME 的“文档字体”（给要读的文字用）设为 Source Serif 4 11 pt；文本编辑器的正文区用 `recto` 配色（D75），像印刷页：大部分是正文色，结构用粗体，注释用斜体，Markdown 的列表符号用陶土色。
 

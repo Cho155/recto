@@ -112,24 +112,33 @@ bright_cyan    = "#85C2BA"  # 8.35
 bright_white   = "#ECEAE2"  # 14.0
 
 # ── Type ──────────────────────────────────
-# Other scripts are rendered through a separate fallback layer (not defined here).
 [font]
 serif = "Source Serif 4"   # clock, dates, panel titles, Today
 # Optical sizes of the same face: drawn for their size, falling back to `serif`.
 serif_small   = "Source Serif 4 SmText"    # under 16 px: the bar's clock and workspace name
 serif_display = "Source Serif 4 Display"   # 40 px and up: Today's date
 sans  = "Inter"            # interface text
-mono  = "IBM Plex Mono"    # terminal
+mono  = "Monaspace Xenon"  # terminal: a slab face with a typewriter's feel (D98)
 scale = [12, 13, 15, 18, 24, 40]   # logical px, for the shell
 tabular_numbers = true
 
+# Chinese, Japanese and Korean: each face above is followed by a CJK face of
+# the same kind (templates/fontconfig). SC draws Chinese the mainland way;
+# Noto's TC, HK, JP and KR faces are the same fonts for other conventions (D99).
+[font.cjk]
+serif = "Noto Serif CJK SC"
+sans  = "Noto Sans CJK SC"
+mono  = "Noto Sans Mono CJK SC"
+
 # Point sizes for apps that take fontconfig or Pango sizes (1 pt = 4/3 px at scale 1).
 [font.pt]
-ui           = 10.5   # ~14 px
-terminal     = 10.5
-launcher     = 12
-notification = 10.5
-document     = 11     # reading text in apps (GNOME's document font): the serif
+ui            = 10.5   # ~14 px
+terminal      = 10     # Xenon is large on its body: 10 pt reads like Plex Mono at 10.5
+terminal_cjk  = 11.5   # CJK in the terminal: fills its two cells without gaps
+terminal_line = 14.25  # terminal line height (19 px at scale 1): air between lines, as on a page
+launcher      = 12
+notification  = 10.5
+document      = 11     # reading text in apps (GNOME's document font): the serif
 
 # ── Shape and space (logical px) ──────────
 [shape]
@@ -175,6 +184,8 @@ reduce_motion_fallback = "fade"
 
 # ── Terminal ──────────────────────────────
 [terminal]
+logo_columns = 26   # fastfetch's logo, in cells; the mark is square inside them
+logo_rows    = 12
 blur = false   # niri 26.04 supports ext-background-effect; off keeps the specimen look and saves GPU memory
 
 # ── Wallpaper ─────────────────────────────

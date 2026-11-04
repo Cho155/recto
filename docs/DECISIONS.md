@@ -28,7 +28,7 @@
 | D4 | 默认终端 foot | 比 kitty 轻，支持透明，可用 server 模式 |
 | D5 | 名称：留白（Liubai） | 留白既是设计原则，也是名字 |
 | D6 | 默认主题“纸”，可选“墨”和“跟随时间” | 纸最能体现与极客风的区别 |
-| D7 | 字体：Source Serif 4（衬线）、Inter（无衬线）、IBM Plex Mono（等宽），全部 OFL | 衬线标题配无衬线正文是这套风格的核心；三者都开源、字重全、数字可等宽 |
+| D7 | 字体：Source Serif 4（衬线）、Inter（无衬线）、IBM Plex Mono（等宽；2026-11-04 换成 Monaspace Xenon，见 D98），全部 OFL | 衬线标题配无衬线正文是这套风格的核心；三者都开源、字重全、数字可等宽 |
 | D8 | 界面用词平实：Notifications、Search、Today | 普通用户不必学新名词；“边注”“索引”“横排书页”只作为内部设计隐喻 |
 | D9 | 状态栏布局按样张：左为工作区与列缩略，右为输入法、托盘、未读点、日期、时间；中间留空 | 平时只报位置和时间；托盘默认折叠，避免彩色图标破坏画面 |
 | D10 | 壁纸用程序生成的等高线，而不是手绘插画 | 属于线条风格，又不依赖手绘能力；可按分辨率生成，体积小 |
@@ -198,6 +198,9 @@
 | D95 | 默认壁纸是 Hammershøi《Interior in Strandgade, Sunlight on the Floor》（1901），painting，放右边、宽 0.40；Chardin 的静物和 Corot 的池塘（铺满）也收进 `design/plates/` 作备选，三张共 3.5 MB | 作者要默认用一张画，由助手挑。Hammershøi 的灰白和纸色同调，Paper 和 Ink 下都安静，右边的空位留给窗口；另外两张是候选页里效果最好的，换图只改令牌里的一行 |
 | D96 | 作者在自己的账户里用 Recto，由作者自己运行 `./install.sh` 切换、`--uninstall` 换回；助手不改作者的配置，也不在作者账户里运行安装。第一次从别的桌面切过来时（niri 配置还不是 Recto 的链接），安装最后不再提供“立即重载”，只提示注销重新登录；已经在用 Recto 时，才提供重载 | 作者要求“不要直接改我的配置，写进脚本，我想换的时候自己换”。从别的桌面切过来时，原来的状态栏、壁纸还在同一个会话里跑，立即启动 Recto 的外壳会和它们叠在一起；重新登录最干净。测试机里演练过：默认 niri → 安装 → 重新登录 → 换 Ink → `--uninstall` → 原配置和 GNOME 设置恢复 |
 | D97 | 代码托管在 GitHub 的私有仓库 `Cho155/recto`；提交邮箱用 GitHub 隐私邮箱 `269170125+Cho155@users.noreply.github.com`，第一次推送前把已有 24 个提交的作者和提交者邮箱都改了过来（代码和时间不变） | 作者要求：先私有，邮箱不公开。改写历史只能在推送前做；test 的副本历史随之变了，`start` 在副本干净时直接对齐到新历史 |
+| D98 | 终端字体从 IBM Plex Mono 10.5 pt 换成 Monaspace Xenon 10 pt（`otf-monaspace`，OFL），行高 14.25 pt（1 倍字号的 1.4 倍左右）；终端里的汉字用 Noto Sans Mono CJK SC 11.5 pt。D7 的等宽一项随之改变 | 作者在真机第一轮说终端字体想“更有味道”。测试机里比较了 Plex Mono（常规和 Text 字重）、Libertinus Mono、Monaspace Xenon、Source Code Pro：Libertinus Mono 最有书卷气，但笔画太细，只有常规体，粗体和斜体都是算出来的；Xenon 是带衬线的打字机风格，笔画结实，有真斜体和多种字重，低分辨率下清楚。Xenon 字面大，10 pt 和 Plex 10.5 pt 一样大、每行字数相近；Courier Prime 只在 AUR，安装脚本装不了。汉字放大到 11.5 pt 是为了填满两个字符格，否则字间有缝 |
+| D99 | 中文渲染：新增 fontconfig 规则（`templates/fontconfig/recto.conf`，链接到 `~/.config/fontconfig/conf.d/50-recto.conf`）。Recto 的每款字体后面接同类的 CJK 字体：衬线接 Noto Serif CJK SC，无衬线接 Noto Sans CJK SC，等宽接 Noto Sans Mono CJK SC（令牌 `font.cjk`）；通用字体族 serif、sans-serif、monospace 也指向 Recto 的字体。`noto-fonts-cjk` 列入建议安装的包 | 之前没有任何规则，fontconfig 按自己的顺序取第一款有汉字的字体：在作者的机器上，等宽落到 Noto Sans Mono CJK **KR**（韩文字形），衬线落到文泉驿正黑（黑体）。SC 的字形和标点位置是简体中文的写法；宋体配 Source Serif、黑体配 Inter，和拉丁字母的气质一致。通用字体族改成 Recto 的字体，浏览器默认字体、只写 "sans-serif" 的程序也和桌面一致；换回原来的桌面时这个链接会删掉 |
+| D100 | fastfetch 配置：图标是系统自带的 Arch 标志（`/usr/share/pixmaps/archlinux-logo.svg`，`filesystem` 包），只取标志本身、不要 TM 字样，纯陶土色（`accent`），画成 sixel 图片，边缘按背景色做 8 级抗锯齿；登录和安装时按屏幕缩放和终端字体算好像素，Paper、Ink 各一份，放在 `~/.cache/recto/`。fastfetch 用 `raw` 类型按 26×12 格排版。键名用斜体陶土色（像书页里的朱红小标题），标题下一条细线，色板用圆点 | 作者要求用纯陶土色画 Arch 图标。试过三种：①用色块和楔形字符拼（12 行太粗，斜边成锯齿）；②fastfetch 自带的 sixel（要装 ImageMagick，而且在 foot 里图被拉高一倍）；③自己编码 sixel，清晰、颜色纯，不需要新依赖。项目不随带 Arch 的标志文件，用系统里的；不是 Arch 或文件不在时，fastfetch 退回自带的字符图标，同样是陶土色。不支持 sixel 的终端会留出一块空白：Linux 控制台在测试机里试过，不出乱码；kitty 没测过 |
 
 ## 待定
 
