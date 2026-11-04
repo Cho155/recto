@@ -1,6 +1,6 @@
 # 项目状态
 
-更新：2026-11-04（第三天，第一轮）。项目已改名 **Recto**（原名“留白／Liubai”，D94），目录是 `~/Projects/recto`。阶段 0–3 完成，阶段 4 大部分完成。第一版（D86）还差：真机验证完整一轮、英文 README；许可证 MIT（D90）、安装脚本已完成。
+更新：2026-11-05（第四天：作者换上 Recto 后的第一条反馈）。项目已改名 **Recto**（原名“留白／Liubai”，D94），目录是 `~/Projects/recto`。阶段 0–3 完成，阶段 4 大部分完成。第一版（D86）还差：真机验证完整一轮、英文 README；许可证 MIT（D90）、安装脚本已完成。
 
 今天的八轮：
 
@@ -18,6 +18,11 @@
 1. **fastfetch**（D100）：图标是系统自带的 Arch 标志，纯陶土色的 sixel 图片，登录和安装时按屏幕缩放画好；键名斜体陶土色。试过字符拼图和 fastfetch 自带的 sixel，都不理想（见 D100）。
 2. **终端字体**（D98）：之前没做过美化，还是 IBM Plex Mono 10.5。比较了五款后换成 Monaspace Xenon 10 pt（带衬线的打字机风格），行高放宽到 14.25 pt。
 3. **中文渲染**（D99）：之前没有处理，汉字会落到 Noto 的韩文字形或文泉驿黑体上。现在有 fontconfig 规则：衬线接 Noto Serif CJK SC、无衬线接 Noto Sans CJK SC、等宽接 Noto Sans Mono CJK SC；终端里汉字 11.5 pt，填满两格。
+
+2026-11-05（作者已在自己的账户里换上 Recto，说效果很好）：
+
+- 每开一个终端都会跑一次 fastfetch，来源是作者自己 `~/.bashrc` 第 17 行（Recto 之前就有，不是 Recto 的启动项）。按作者要求，助手删掉了这一行；这是作者当面要求的一次例外，不是改了“不改作者配置”的约定。原来的内容：`if (( $(tput cols) < 90 )); then fastfetch -c ~/.config/fastfetch/compact.jsonc; else fastfetch; fi`。
+- 作者不知道怎么打开应用：搜索（`Super+Space` 或 `Super+D`）早就有，但状态栏上没有鼠标入口，README 也没写快捷键。见“下一步”。
 
 全部在测试虚拟机中验证过。助手没有在作者账户里安装或运行 Recto（见“没做”里第一天的一处例外）；作者什么时候切换，由作者决定。测试机已关机。
 
@@ -110,11 +115,12 @@
 ## 下一步
 
 1. **作者**（2026-11-04 说：马上在自己的账户里开始用）：自己切换：`cd ~/Projects/recto && ./install.sh`，然后注销重新登录；换回原来：`./install.sh --uninstall`，再重新登录。这次安装会先问要不要装 `otf-monaspace`（终端字体，下载约 23 MB）；`noto-fonts-cjk` 和 `fastfetch` 这台机器上已经有了。原来 matugen 生成的 `~/.config/fastfetch/config.jsonc` 会改名备份，卸载时放回。用一段时间，告诉助手哪里质感不够。
-2. **助手**：下一阶段的主线（作者 2026-11-03 定）是在使用中持续提升质感，并尽量适配更多应用；按作者的使用反馈调整（先在测试机里复现和改，作者重新运行 `./install.sh` 就会更新）。
-3. 要讨论：默认主题用 Auto 还是 Paper；纸色在真机上的亮度（作者第一轮觉得刺眼，当时没有壁纸）。终端字体已定（D98），作者用了觉得不合适再换。
-4. **助手**：写英文 README（截图用 Recto 和默认壁纸）；把样张画布和真机清单页改成新名重新发布。
-5. 完整的一轮真机验证（作者自己的账户里用起来以后，`tools/collect-report` 可以直接在会话里跑），用两组帧率决定 D50（cairo 还是 gl）。
-6. 想换壁纸时：另外两张在 `design/plates/`，其余候选在 `design/plates/candidates/` 和[图版候选页](https://claude.ai/artifact/APXEjbY2mGLDFANaxJAj4m)。
+2. **助手**（2026-11-05 作者的反馈）：让搜索和其他快捷键容易被发现：README 加一张快捷键表（`Super+Space` 搜索、`Super+A` 今日页、`Super+Shift+/` 全部快捷键……），考虑在页眉上放一个可以点开搜索的入口（Noctalia 有，作者习惯用）。
+3. **助手**：下一阶段的主线（作者 2026-11-03 定）是在使用中持续提升质感，并尽量适配更多应用；按作者的使用反馈调整（先在测试机里复现和改，作者重新运行 `./install.sh` 就会更新）。
+4. 要讨论：默认主题用 Auto 还是 Paper；纸色在真机上的亮度（作者第一轮觉得刺眼，当时没有壁纸）。终端字体已定（D98），作者用了觉得不合适再换。
+5. **助手**：写英文 README（截图用 Recto 和默认壁纸）；把样张画布和真机清单页改成新名重新发布。
+6. 完整的一轮真机验证（作者自己的账户里用起来以后，`tools/collect-report` 可以直接在会话里跑），用两组帧率决定 D50（cairo 还是 gl）。
+7. 想换壁纸时：另外两张在 `design/plates/`，其余候选在 `design/plates/candidates/` 和[图版候选页](https://claude.ai/artifact/APXEjbY2mGLDFANaxJAj4m)。
 
 之后（1.1）：
 
