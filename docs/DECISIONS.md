@@ -202,6 +202,14 @@
 | D99 | 中文渲染：新增 fontconfig 规则（`templates/fontconfig/recto.conf`，链接到 `~/.config/fontconfig/conf.d/50-recto.conf`）。Recto 的每款字体后面接同类的 CJK 字体：衬线接 Noto Serif CJK SC，无衬线接 Noto Sans CJK SC，等宽接 Noto Sans Mono CJK SC（令牌 `font.cjk`）；通用字体族 serif、sans-serif、monospace 也指向 Recto 的字体。`noto-fonts-cjk` 列入建议安装的包 | 之前没有任何规则，fontconfig 按自己的顺序取第一款有汉字的字体：在作者的机器上，等宽落到 Noto Sans Mono CJK **KR**（韩文字形），衬线落到文泉驿正黑（黑体）。SC 的字形和标点位置是简体中文的写法；宋体配 Source Serif、黑体配 Inter，和拉丁字母的气质一致。通用字体族改成 Recto 的字体，浏览器默认字体、只写 "sans-serif" 的程序也和桌面一致；换回原来的桌面时这个链接会删掉 |
 | D100 | fastfetch 配置：图标是系统自带的 Arch 标志（`/usr/share/pixmaps/archlinux-logo.svg`，`filesystem` 包），只取标志本身、不要 TM 字样，纯陶土色（`accent`），画成 sixel 图片，边缘按背景色做 8 级抗锯齿；登录和安装时按屏幕缩放和终端字体算好像素，Paper、Ink 各一份，放在 `~/.cache/recto/`。fastfetch 用 `raw` 类型按 26×12 格排版。键名用斜体陶土色（像书页里的朱红小标题），标题下一条细线，色板用圆点 | 作者要求用纯陶土色画 Arch 图标。试过三种：①用色块和楔形字符拼（12 行太粗，斜边成锯齿）；②fastfetch 自带的 sixel（要装 ImageMagick，而且在 foot 里图被拉高一倍）；③自己编码 sixel，清晰、颜色纯，不需要新依赖。项目不随带 Arch 的标志文件，用系统里的；不是 Arch 或文件不在时，fastfetch 退回自带的字符图标，同样是陶土色。不支持 sixel 的终端会留出一块空白：Linux 控制台在测试机里试过，不出乱码；kitty 没测过 |
 
+## 2026-11-05 · 作者日常使用后的第一批修改
+
+| 编号 | 决定 | 理由 |
+| --- | --- | --- |
+| D101 | 开终端的快捷键改为 `footclient --no-wait \|\| foot`；`foot.ini` 改为按主题各生成一份（只差 `initial-color-theme`），`~/.config/foot/foot.ini` 经 `current` 链接 | 作者报告：关掉一个终端后会自动弹出一个 Paper 配色的终端。原因有两层：`footclient` 会等 shell 结束并带回它的退出码，关窗时 shell 被挂断、退出码不是 0，`\|\| foot` 就又开了一个独立的 foot；独立的 foot 只读 `foot.ini`，里面写死了默认主题（Paper），收不到登录时发给服务进程的信号（D34），所以 Ink 下也是纸色。`--no-wait` 让 footclient 连上服务就返回，只有连不上时才另开；另开的 foot 现在按当前主题启动。在测试机里复现了旧行为，并验证了关窗、shell 出错退出、服务不在三种情况 |
+| D102 | 电量在状态栏常驻：日期左边一个次要色的百分比，插电时前面一道细线闪电；用电池且 ≤ 20% 时换成正文色并带剩余时间，≤ 10% 用陶土色。低电量不再作为按需提示出现 | 作者在笔记本上找不到电量，问“电量显示你做过吗”。原设计（只在低电量时出现，平时看今日页）对笔记本来说藏得太深；作者在两种方案里选了常驻。一个数字很安静，不违背“状态栏不放实时数字”的本意（那条针对 CPU、网速这类跳动的数据）。低电量由同一个数字变色表达，避免同一个百分比在栏上出现两次 |
+| D103 | 快捷键的说明用 niri 自带的列表（Super+Shift+/），不做 Recto 自己的快捷键页；给列表里的每一项都写了 Recto 的说明（句子式大小写，和其他界面文字一致），补上全屏、按数字去工作区、截整屏／窗口、居中、标签等常用键，并在 README 加了一张完整的快捷键表 | 作者在三种方案（Recto 的快捷键页、页眉入口加 README、niri 自带）里选了 niri 自带。niri 默认的说明是标题式大小写（“Close Focused Window”），和 Recto 写的混在一起不统一；31 行在 1366×768 上放得下 |
+
 ## 待定
 
 - 今日页的日程数据源：Evolution Data Server 的内存代价尚未测量。

@@ -1,7 +1,12 @@
 //! The bar: where you are on the left; on the right, only what needs attention,
-//! then the time.
+//! then the battery and the time.
 
-use crate::{niri, state::Desktop, status::Alert, strings};
+use crate::{
+    niri,
+    state::Desktop,
+    status::{self, Alert, Battery},
+    strings,
+};
 use gtk::{gdk, glib, prelude::*};
 use gtk4_layer_shell::{Edge, KeyboardMode, Layer, LayerShell};
 use std::rc::Rc;
@@ -26,6 +31,8 @@ pub struct Notices {
     /// Two letters for the input method, when there is more than one.
     pub input_method: Option<String>,
     pub tray_items: usize,
+    /// `None` on a machine without a battery.
+    pub battery: Option<Battery>,
 }
 
 pub struct Bar {
@@ -42,6 +49,9 @@ pub struct Bar {
     input_method: gtk::Button,
     tray: gtk::Button,
     unread: gtk::Button,
+    battery: gtk::Box,
+    battery_bolt: gtk::DrawingArea,
+    battery_text: gtk::Label,
     date: gtk::Label,
     time: gtk::Label,
 }
@@ -128,6 +138,19 @@ impl Bar {
         let h = handler.clone();
         tray.connect_clicked(move |button| h(Event::ToggleTray(button.clone().upcast())));
 
+        // The battery: a quiet figure, louder when it runs low.
+        let battery_bolt = crate::glyph::new(crate::glyph::Glyph::Bolt, 11);
+        let battery_text = label("", "battery-figure");
+        let battery = gtk::Box::builder()
+            .orientation(gtk::Orientation::Horizontal)
+            .spacing(2)
+            .valign(gtk::Align::Center)
+            .accessible_role(gtk::AccessibleRole::Status)
+            .build();
+        battery.add_css_class("battery");
+        battery.append(&battery_bolt);
+        battery.append(&battery_text);
+
         let dot = hbox(0);
         dot.add_css_class("unread-dot");
         dot.set_valign(gtk::Align::Center);
@@ -152,7 +175,7 @@ impl Bar {
 
         for widget in [workspace.upcast_ref::<gtk::Widget>(), strip.upcast_ref(), spacer.upcast_ref(),
                        notices.upcast_ref(), divider.upcast_ref(), input_method.upcast_ref(),
-                       tray.upcast_ref(), unread.upcast_ref(), clock.upcast_ref()] {
+                       tray.upcast_ref(), battery.upcast_ref(), unread.upcast_ref(), clock.upcast_ref()] {
             root.append(widget);
         }
 
@@ -187,6 +210,9 @@ impl Bar {
             input_method,
             tray,
             unread,
+            battery,
+            battery_bolt,
+            battery_text,
             date,
             time,
         };
@@ -285,9 +311,31 @@ impl Bar {
         self.tray.set_tooltip_text(Some(&tray_name));
         self.tray.update_property(&[gtk::accessible::Property::Label(&tray_name)]);
 
+        self.update_battery(notices.battery.as_ref());
+
         self.unread.set_visible(notices.unread > 0);
         self.unread.update_property(&[gtk::accessible::Property::Label(&strings::unread(notices.unread))]);
         self.unread.set_tooltip_text(Some(&strings::unread(notices.unread)));
+    }
+
+    fn update_battery(&self, battery: Option<&Battery>) {
+        let Some(figure) = battery.map(status::battery_figure) else {
+            self.battery.set_visible(false);
+            return;
+        };
+        self.battery_text.set_label(&figure.text);
+        self.battery_bolt.set_visible(figure.plugged);
+        for (class, on) in [("low", figure.charge == status::Charge::Low),
+                            ("critical", figure.charge == status::Charge::Critical)] {
+            if on {
+                self.battery.add_css_class(class);
+            } else {
+                self.battery.remove_css_class(class);
+            }
+        }
+        self.battery.set_tooltip_text(Some(&figure.spoken));
+        self.battery.update_property(&[gtk::accessible::Property::Label(&figure.spoken)]);
+        self.battery.set_visible(true);
     }
 
     pub fn update_clock(&self, now: &glib::DateTime) {

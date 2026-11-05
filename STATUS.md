@@ -1,6 +1,6 @@
 # 项目状态
 
-更新：2026-11-05（第四天：作者换上 Recto 后的第一条反馈）。项目已改名 **Recto**（原名“留白／Liubai”，D94），目录是 `~/Projects/recto`。阶段 0–3 完成，阶段 4 大部分完成。第一版（D86）还差：真机验证完整一轮、英文 README；许可证 MIT（D90）、安装脚本已完成。
+更新：2026-11-05（第四天：作者换上 Recto 后的反馈；第二轮修了自动弹终端，电量常驻，快捷键说明补全）。项目已改名 **Recto**（原名“留白／Liubai”，D94），目录是 `~/Projects/recto`。阶段 0–3 完成，阶段 4 大部分完成。第一版（D86）还差：真机验证完整一轮、英文 README；许可证 MIT（D90）、安装脚本已完成。
 
 今天的八轮：
 
@@ -26,6 +26,14 @@
 - 作者问为什么终端用 foot 不用 kitty。按 D4、D13 解释了（foot 服务 3.6 MiB PSS；主题切换原地变色；kitty 的标签和分屏与 niri 的列重复——这一条是当时补的理由；kitty 不显示 sixel，fastfetch 图标会是空白）。作者的 kitty 0.49.2 已装。作者说之后慢慢研究，没有改动。
 - 作者预计之后会有不少要调整的小细节。今天没有在测试机里做任何事，测试机一直关着。
 
+2026-11-05 第二轮（作者在用 Recto 时报的问题和两个问题）：
+
+1. **关掉终端后自动弹出一个 Paper 终端**（D101）：快捷键原来是 `footclient || foot`。footclient 会等 shell 结束并带回退出码，关窗时 shell 被挂断、退出码不是 0，于是 `|| foot` 又开了一个独立的 foot；独立的 foot 只读 `foot.ini` 里写死的 Paper，所以 Ink 下也是纸色。改成 `footclient --no-wait || foot`，`foot.ini` 按主题各生成一份、经 `current` 链接。测试机里先复现了旧行为，再验证了关窗、shell 出错退出、foot 服务不在（另开的 foot 是 Ink）三种情况。截图 `docs/screenshots/2026-11-05-vm-terminal-*.png`。
+2. **电量**（D102）：原来只在用电池且 ≤ 20% 时出现在状态栏。作者选了“常驻，安静显示”：日期左边一个次要色的百分比，插电时前面一道细线闪电，低于 20% 换正文色并带剩余时间，≤ 10% 陶土色。测试机没有电池，用假的 UPower（私有总线）看过五种状态和两种主题，截图 `2026-11-05-vm-battery-{ink,paper}.png`。48 个单元测试通过。
+3. **快捷键**（D103）：作者选了“niri 自带的就够了”（Super+Shift+/），不做 Recto 自己的快捷键页，也不加页眉入口。给列表的每一项写了统一的说明，补了全屏、按数字去工作区、截整屏／窗口等，共 31 行；README 加了完整的快捷键表。截图 `2026-11-05-vm-hotkey-overlay.png`。
+
+作者账户里还没有这些改动，要作者自己运行 `./install.sh`（会重启状态栏、重载 niri，不用重新登录）。
+
 全部在测试虚拟机中验证过。助手没有在作者账户里安装或运行 Recto（见“没做”里第一天的一处例外）；作者什么时候切换，由作者决定。测试机已关机。
 
 ## 现在能用的
@@ -42,13 +50,13 @@
 | 会话 | swayidle 空闲锁屏、polkit-gnome 授权弹窗、foot 服务进程 | `templates/niri/config.kdl` |
 | 安装与测试 | `./install.sh`（依赖检查、编译、预览、安装、`--uninstall`；从别的桌面第一次切过来时提示重新登录）；真机验证清单；`tools/collect-report` 一条命令收集机器信息、内存和两种渲染器的帧率 | `docs/TESTING.md`、`docs/THEMES.md`、D88、D89 |
 
-- **测试**：46 个单元测试通过，编译无警告。
+- **测试**：48 个单元测试通过，编译无警告。
 - **托管**：GitHub 私有仓库 https://github.com/Cho155/recto（2026-11-03 建，D97）；推送前先问作者。
 - **提交**：作者 2026-11-03 同意随时提交。历史从 `c6361a8` 开始，在 master 上；提交身份只设在本仓库（名字 Tibo，GitHub 隐私邮箱 `269170125+Cho155@users.noreply.github.com`；2026-11-03 推送前把全部历史从作者的私人邮箱改成了它，见 D97）。
 - **外壳内存**：空闲约 24 MiB PSS（RSS 41–51 MiB，视会话里用过的东西而定）；整页今日页打开时多约 17 MiB，关闭后释放；反复开关不增长（D61）。
 - **整个桌面空闲**：166–174 MiB，预算 400 MiB（`reports/memory/2026-11-03-vm-polish/`）。
 - **动效帧率**：通知、音量提示满帧（75 Hz）；搜索的第一帧晚一两帧；整页今日页刚出现时有几帧热身（中位数 15–23 ms，见 D87），真机上用 `collect-report` 比较 cairo 和 gl（`reports/motion/2026-11-03-vm/`）。
-- **截图**：`docs/screenshots/`，42 张。2026-11-04 新增：`2026-11-04-vm-fastfetch-paper.png`、`…-fastfetch-ink.png`、`…-terminal-fonts.png`（五款终端字体的对比，Chinese 一行是改之前的回退）、`…-cjk-notification.png`（中文通知）。改名后的默认桌面（Hammershøi）见 `2026-11-03-vm-recto-default-paper.png`、`…-ink.png`；古典风格见 `2026-11-03-vm-classical-*.png`，另有 `…-today-now-playing.png`、`…-text-editor-*.png`、`…-qt6ct.png`、`…-plate-test-drawing.png`（叶子是测试用的线稿，不随项目分发）、`…-lock-title-page.png`。
+- **截图**：`docs/screenshots/`，47 张（2026-11-05 新增 5 张：终端问题修改前后、电量两种主题、快捷键列表）。2026-11-04 新增：`2026-11-04-vm-fastfetch-paper.png`、`…-fastfetch-ink.png`、`…-terminal-fonts.png`（五款终端字体的对比，Chinese 一行是改之前的回退）、`…-cjk-notification.png`（中文通知）。改名后的默认桌面（Hammershøi）见 `2026-11-03-vm-recto-default-paper.png`、`…-ink.png`；古典风格见 `2026-11-03-vm-classical-*.png`，另有 `…-today-now-playing.png`、`…-text-editor-*.png`、`…-qt6ct.png`、`…-plate-test-drawing.png`（叶子是测试用的线稿，不随项目分发）、`…-lock-title-page.png`。
 - **样张画布**：https://claude.ai/artifact/LsCAAp3mUTsEYSnUoPumiz（私有；第 13 版；源文件在 `design/specimen/project/`）。
 
 ## 真机第一轮（2026-11-03 傍晚，ThinkPad X230，test 账户）
@@ -82,7 +90,7 @@
 - 会话里的 `at-spi2-registryd` 每次重启 niri 会话多一个（与Recto无关，待查）。
 - Qt 5 应用没有主题；已打开的 Qt 应用要重开才跟随主题切换（D83）。
 - GTK 应用的控件（按钮、标签页）仍是 Adwaita 的样子，只改了配色和窗口标题（D77）。
-- 低电量提示没有实测（虚拟机没有电池）；空闲锁屏的 10 分钟计时没有完整等过；锁屏后用密码解锁没有测过。
+- 电量数字只用假的 UPower 测过，没在真的电池上看过（作者的 X230 有电池，装上就能看到）；空闲锁屏的 10 分钟计时没有完整等过；锁屏后用密码解锁没有测过。
 - 搜索不读 .desktop 的 Keywords（D45）。
 - 输入法指示不支持 IBus；托盘项不响应滚轮。
 - 适配待查：这台机器上 `xdg-open` 用 Firefox 打开链接时，如果 Firefox 原本没开，`xdg-open` 会一直等到 Firefox 关掉才返回（登录 gh 时卡住就是这个原因）。niri 会话不属于 GNOME、KDE 这类已知桌面，`xdg-open` 走的是通用路径；Recto 里调用它的程序可能同样会卡，以后看要不要处理。
@@ -91,7 +99,7 @@
 - polkit-gnome 常驻约 11–17 MiB，是可以优化的大头。
 - 所有测量都在虚拟机（virgl 显卡）里完成；在真机上要重新测量。
 
-## 测试机现状（`~/VMs/liubai-arch/`，2026-11-04 第一轮结束时已关机）
+## 测试机现状（`~/VMs/liubai-arch/`，2026-11-05 第二轮结束时已关机）
 
 - 启动：`./start.sh`；执行命令：`./vm '<命令>'`；同步项目：`./sync.sh`（不覆盖测试机里的 `build/` 和 `shell/target/`）。
 - 已安装：niri 26.04 一套、Rust 工具链、PipeWire、UPower、NetworkManager（取代了 systemd-networkd）、fcitx5（配置了 us 和 de 两种键盘布局）、nm-applet、ydotool、swayidle、polkit-gnome。2026-11-03 新增：imagemagick（拼慢放截图）、python-fonttools（查字体的 OpenType 特性）、qt6ct（测 Qt 主题）、python-gobject（跑假播放器）。
@@ -105,6 +113,7 @@
   - `~/bin/insession` 让 SSH 命令带上会话环境；
   - `~/.config/niri/local.kdl` 关掉了指针加速和热角；
   - arch 用户加入了 wheel 组，用于测授权弹窗。
+- 2026-11-05 第二轮：装的是 D101–D103 之后的版本，模式 Auto。`~/fake-upower.py`（源文件在 `~/VMs/liubai-arch/fake-upower.py`）是假的电池；`~/battery-test.sh` 起一个私有总线当系统总线、启动假电池、用它重启外壳，之后改 `/tmp/battery.json`（`{"percent": 15, "state": 2, "left": 1500}`，state 1 充电、2 放电、4 充满）就能换状态；截图在 `~/battery/`。用完要正常重启外壳或会话，否则外壳连不到 NetworkManager。
 - 测试用的文件：
   - `~/fake-mpris.py`（假播放器，源文件在 `~/VMs/liubai-arch/fake-mpris.py`；用 `~/bin/insession python3 ~/fake-mpris.py &` 启动）；
   - `~/Documents/recto-sample.md`（编辑器配色样例）；
@@ -116,8 +125,8 @@
 
 ## 下一步
 
-1. **作者**（2026-11-05 起已在自己的账户里日常使用）：把觉得不对的小细节告诉助手。更新：`cd ~/Projects/recto && ./install.sh`；当初的切换说明：`./install.sh`，然后注销重新登录；换回原来：`./install.sh --uninstall`，再重新登录。这次安装会先问要不要装 `otf-monaspace`（终端字体，下载约 23 MB）；`noto-fonts-cjk` 和 `fastfetch` 这台机器上已经有了。原来 matugen 生成的 `~/.config/fastfetch/config.jsonc` 会改名备份，卸载时放回。用一段时间，告诉助手哪里质感不够。
-2. **助手**（2026-11-05 作者的反馈）：让搜索和其他快捷键容易被发现：README 加一张快捷键表（`Super+Space` 搜索、`Super+A` 今日页、`Super+Shift+/` 全部快捷键……），考虑在页眉上放一个可以点开搜索的入口（Noctalia 有，作者习惯用）。
+1. **作者**（2026-11-05 起已在自己的账户里日常使用）：运行一次 `cd ~/Projects/recto && ./install.sh` 用上第二轮的修改（终端、电量、快捷键说明）；把觉得不对的小细节告诉助手。更新：`cd ~/Projects/recto && ./install.sh`；当初的切换说明：`./install.sh`，然后注销重新登录；换回原来：`./install.sh --uninstall`，再重新登录。这次安装会先问要不要装 `otf-monaspace`（终端字体，下载约 23 MB）；`noto-fonts-cjk` 和 `fastfetch` 这台机器上已经有了。原来 matugen 生成的 `~/.config/fastfetch/config.jsonc` 会改名备份，卸载时放回。用一段时间，告诉助手哪里质感不够。
+2. ~~快捷键容易被发现~~：2026-11-05 第二轮按作者的选择做完（niri 自带的列表 + README 表，D103）。页眉上点开搜索的入口作者没要，不做。
 3. **助手**：下一阶段的主线（作者 2026-11-03 定）是在使用中持续提升质感，并尽量适配更多应用；按作者的使用反馈调整（先在测试机里复现和改，作者重新运行 `./install.sh` 就会更新）。
 4. 要讨论：终端要不要换成或允许选 kitty（作者 2026-11-05 提起，之后再研究；要先量 kitty 的内存，并处理主题切换和 sixel 图标）；默认主题用 Auto 还是 Paper；纸色在真机上的亮度（作者第一轮觉得刺眼，当时没有壁纸）。终端字体已定（D98），作者用了觉得不合适再换。
 5. **助手**：写英文 README（截图用 Recto 和默认壁纸）；把样张画布和真机清单页改成新名重新发布。

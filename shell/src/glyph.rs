@@ -13,6 +13,8 @@ pub enum Glyph {
     ChevronDown,
     /// Three dots, for a menu.
     More,
+    /// A lightning stroke, for mains power.
+    Bolt,
 }
 
 /// A `size`×`size` icon that follows the CSS `color` of where it is placed.
@@ -51,6 +53,15 @@ fn draw(glyph: Glyph, color: &gtk::gdk::RGBA, cr: &cairo::Context, w: f64, h: f6
         }
         Glyph::ChevronDown => {
             let points = [at(0.25, 0.4), at(0.5, 0.64), at(0.75, 0.4)];
+            cr.move_to(points[0].0, points[0].1);
+            for p in &points[1..] {
+                cr.line_to(p.0, p.1);
+            }
+            let _ = cr.stroke();
+        }
+        Glyph::Bolt => {
+            // One zigzag stroke, like the others a line rather than a filled shape.
+            let points = [at(0.6, 0.1), at(0.32, 0.54), at(0.66, 0.46), at(0.4, 0.9)];
             cr.move_to(points[0].0, points[0].1);
             for p in &points[1..] {
                 cr.line_to(p.0, p.1);

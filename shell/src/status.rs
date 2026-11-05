@@ -1,5 +1,5 @@
 //! System status the bar may mention: battery, network, sound. Plain data.
-//! The bar stays quiet unless one of these needs attention.
+//! The bar keeps a quiet battery figure; the rest is said only when it needs attention.
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Battery {
@@ -44,18 +44,56 @@ pub fn duration(seconds: i64) -> String {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Charge {
+    Plenty,
+    Low,
+    Critical,
+}
+
+/// The bar's battery figure: always there on a machine with a battery.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Figure {
+    /// "96%"; when running low, "15% · about 25 min".
+    pub text: String,
+    /// On mains power (charging, or full): shown with a small bolt.
+    pub plugged: bool,
+    pub charge: Charge,
+    /// The tooltip and what a screen reader says: "Battery 96%, plugged in".
+    pub spoken: String,
+}
+
+pub fn battery_figure(b: &Battery) -> Figure {
+    let plugged = b.charging || b.full;
+    let percent = format!("{:.0}%", b.percent);
+    let left = b.seconds_left.filter(|s| *s > 0 && !plugged).map(duration);
+    let charge = if plugged || b.percent > LOW_BATTERY {
+        Charge::Plenty
+    } else if b.percent > CRITICAL_BATTERY {
+        Charge::Low
+    } else {
+        Charge::Critical
+    };
+    let text = match (&left, charge) {
+        (Some(left), Charge::Low | Charge::Critical) => format!("{percent} · about {left}"),
+        _ => percent.clone(),
+    };
+    let spoken = if b.full {
+        format!("Battery {percent}, plugged in")
+    } else if b.charging {
+        format!("Battery {percent}, charging")
+    } else if let Some(left) = &left {
+        format!("Battery {percent}, about {left} left")
+    } else {
+        format!("Battery {percent}")
+    };
+    Figure { text, plugged, charge, spoken }
+}
+
 /// What the bar should say right now, most urgent first. Empty most of the time.
+/// (A low battery shows in the battery figure itself.)
 pub fn alerts(status: &Status) -> Vec<Alert> {
     let mut out = Vec::new();
-    if let Some(b) = &status.battery {
-        if !b.charging && !b.full && b.percent <= LOW_BATTERY {
-            let mut text = format!("Battery {:.0}%", b.percent);
-            if let Some(secs) = b.seconds_left.filter(|s| *s > 0) {
-                text.push_str(&format!(" · about {}", duration(secs)));
-            }
-            out.push(Alert { text, urgent: b.percent <= CRITICAL_BATTERY });
-        }
-    }
     if status.online == Some(false) {
         out.push(Alert { text: "Offline".into(), urgent: false });
     }
@@ -103,6 +141,10 @@ mod tests {
         }
     }
 
+    fn figure(percent: f64, charging: bool, left: Option<i64>) -> Figure {
+        battery_figure(battery(percent, charging, left).battery.as_ref().unwrap())
+    }
+
     #[test]
     fn quiet_when_all_is_well() {
         assert!(alerts(&battery(80.0, false, Some(18_000))).is_empty());
@@ -110,18 +152,35 @@ mod tests {
     }
 
     #[test]
-    fn low_battery_speaks_up() {
-        let a = alerts(&battery(15.0, false, Some(1_500)));
-        assert_eq!(a, vec![Alert { text: "Battery 15% · about 25 min".into(), urgent: false }]);
-        assert!(alerts(&battery(8.0, false, None))[0].urgent);
-        assert!(alerts(&battery(8.0, true, None)).is_empty());
+    fn battery_figure_is_quiet_until_low() {
+        let f = figure(82.0, false, Some(18_000));
+        assert_eq!((f.text.as_str(), f.plugged, f.charge), ("82%", false, Charge::Plenty));
+        assert_eq!(f.spoken, "Battery 82%, about 5 h left");
+        let f = figure(15.0, false, Some(1_500));
+        assert_eq!((f.text.as_str(), f.charge), ("15% · about 25 min", Charge::Low));
+        let f = figure(8.0, false, None);
+        assert_eq!((f.text.as_str(), f.charge), ("8%", Charge::Critical));
     }
 
     #[test]
-    fn order_is_battery_offline_muted() {
+    fn plugged_in_is_never_low() {
+        let f = figure(8.0, true, Some(1_500));
+        assert_eq!((f.text.as_str(), f.plugged, f.charge), ("8%", true, Charge::Plenty));
+        assert_eq!(f.spoken, "Battery 8%, charging");
+        let full = battery_figure(&Battery { percent: 96.0, charging: false, full: true, seconds_left: None });
+        assert_eq!((full.text.as_str(), full.plugged, full.spoken.as_str()), ("96%", true, "Battery 96%, plugged in"));
+    }
+
+    #[test]
+    fn low_battery_is_not_an_alert_too() {
+        assert!(alerts(&battery(5.0, false, None)).is_empty());
+    }
+
+    #[test]
+    fn order_is_offline_muted() {
         let status = Status { online: Some(false), muted: Some(true), ..battery(5.0, false, None) };
         let texts: Vec<String> = alerts(&status).into_iter().map(|a| a.text).collect();
-        assert_eq!(texts, vec!["Battery 5%", "Offline", "Muted"]);
+        assert_eq!(texts, vec!["Offline", "Muted"]);
     }
 
     #[test]

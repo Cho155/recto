@@ -9,7 +9,7 @@
 ```text
 design/tokens.toml ──┐
                      ├─ recto-theme build ──> build/
-templates/**  ───────┘                          ├─ shared/  两种主题写在一起（niri 主配置、foot、GTK 4）
+templates/**  ───────┘                          ├─ shared/  两种主题写在一起（niri 主配置、GTK 4）
                                                 ├─ paper/   纸
                                                 └─ ink/     墨
 
@@ -27,7 +27,7 @@ recto-theme install ──> ~/.local/share/recto/{shared,paper,ink,bin,tokens.to
 | 应用 | 配置 | 切换时 |
 | --- | --- | --- |
 | niri | 主配置共用，末尾 include `current/niri/theme.kdl`（只有颜色） | `niri msg action load-config-file` |
-| foot | 一个文件同时写纸（`[colors-light]`）和墨（`[colors-dark]`） | 向 foot 发 SIGUSR2（纸）或 SIGUSR1（墨），已开的终端原地变色 |
+| foot | 每份都同时写纸（`[colors-light]`）和墨（`[colors-dark]`），两份只差新开时用哪个（`initial-color-theme`），经 `current` 链接 | 向 foot 发 SIGUSR2（纸）或 SIGUSR1（墨），已开的终端原地变色；之后新开的独立 foot 按 `current` 用当前主题（D101） |
 | fuzzel | 经 `current` 链接 | 每次启动重新读取，无需处理 |
 | mako（后备） | 经 `current` 链接；外壳运行时不启动 | `makoctl reload` |
 | GTK 4 | 一个文件：纸为默认，墨写在 `@media (prefers-color-scheme: dark)` 里；窗口标题用衬线（D77） | 设置 `color-scheme`，已打开的 libadwaita 应用实时切换；字体改动在应用重开后生效 |

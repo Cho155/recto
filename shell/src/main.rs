@@ -216,6 +216,7 @@ impl Shell {
             unread: inbox.unread(),
             input_method: self.input_method.borrow().clone(),
             tray_items: tray.map_or(0, |t| t.listed().len()),
+            battery: self.status.borrow().battery.clone(),
         }
     }
 

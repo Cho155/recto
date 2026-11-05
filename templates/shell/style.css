@@ -192,6 +192,26 @@ window.recto-today {
   background-color: {{ t.accent }};
 }
 
+/* The battery: a quiet figure beside the date; in the text colour when it
+ * runs low, in clay when it is nearly out. The bolt means mains power. */
+.battery {
+  margin-right: 10px;   /* apart from the date, so the two do not read as one phrase */
+  color: {{ t.muted }};
+}
+
+.battery-figure {
+  font-size: 14px;
+  font-feature-settings: "tnum", "onum";
+}
+
+.battery.low {
+  color: {{ t.text }};
+}
+
+.battery.critical {
+  color: {{ t.accent_text }};
+}
+
 /* ── Notifications (margin notes) ────────────────── */
 
 window.recto-margin {

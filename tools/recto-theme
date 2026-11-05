@@ -48,7 +48,7 @@ BUILD_MARK = ".recto-build"
 # Template (under templates/) and whether it is rendered once or once per theme.
 TARGETS = [
     ("niri/config.kdl", "shared"),
-    ("foot/foot.ini", "shared"),
+    ("foot/foot.ini", "theme"),
     ("gtk-4.0/gtk.css", "shared"),
     ("niri/theme.kdl", "theme"),
     ("fuzzel/fuzzel.ini", "theme"),
@@ -72,7 +72,7 @@ SHELL_BINARY = REPO / "shell" / "target" / "release" / "recto-shell"
 # Paths through "current" follow theme switches without being relinked.
 LINKS = [
     ("niri/config.kdl", "shared/niri/config.kdl"),
-    ("foot/foot.ini", "shared/foot/foot.ini"),
+    ("foot/foot.ini", "current/foot/foot.ini"),   # a new foot opens in the current theme
     ("fuzzel/fuzzel.ini", "current/fuzzel/fuzzel.ini"),
     ("mako/config", "current/mako/config"),
     ("gtk-3.0/gtk.css", "current/gtk-3.0/gtk.css"),

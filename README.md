@@ -46,6 +46,36 @@ cd ~/Projects/recto
 
 详见 [主题系统](docs/THEMES.md)；在真机上试用，请按 [真机验证清单](docs/TESTING.md)。
 
+## 快捷键
+
+记不住时按 **Super+Shift+/**，屏幕上会列出常用的快捷键（niri 自带的列表，说明由 Recto 写）。Super 就是 Windows 键。
+
+| 按键 | 作用 |
+| --- | --- |
+| Super+Enter 或 Super+T | 打开终端 |
+| Super+Space 或 Super+D | 搜索应用和操作 |
+| Super+A | 今日页：通知、主题（Paper · Ink · Auto）、专注模式 |
+| Super+Shift+T | 在 Paper 和 Ink 之间切换 |
+| Super+Alt+L | 锁屏 |
+| Super+Q | 关闭窗口 |
+| Super+O | 总览所有窗口 |
+| Super+← → 或 Super+H L | 切换到左边或右边的列 |
+| Super+↑ ↓ 或 Super+K J | 同一列里的上一个、下一个窗口 |
+| Super+Ctrl+方向键 | 移动列或窗口 |
+| Super+1 … 9 | 去第 1 到 9 个工作区 |
+| Super+Ctrl+1 … 9 | 把当前列移到第 1 到 9 个工作区 |
+| Super+Page Down / Page Up，或 Super+U / I | 下一个、上一个工作区 |
+| Super+R | 在几种预设宽度之间切换 |
+| Super+F / Super+Shift+F | 列占满宽度 / 窗口全屏 |
+| Super+- / Super+= | 列窄一点 / 宽一点 |
+| Super+C | 把当前列放到屏幕中间 |
+| Super+[ / ] | 把窗口并进左边或右边的列（已在同一列时则分出去） |
+| Super+W | 把一列里的窗口叠成标签 |
+| Super+V | 窗口浮动或回到平铺 |
+| PrtSc | 截取选区；Ctrl+PrtSc 截整屏，Alt+PrtSc 截当前窗口（存到 `~/Pictures/Screenshots`） |
+| Super+Shift+P | 关闭显示器 |
+| Super+Shift+E | 注销 |
+
 ## 文档
 
 | 文档 | 内容 |
