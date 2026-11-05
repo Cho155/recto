@@ -1,4 +1,5 @@
-//! "Mic in use": is anything recording right now?
+//! "Mic in use": is anything recording right now? And has a sound device changed
+//! (volume, mute, the default output)?
 //!
 //! Watched through `pactl subscribe` (PipeWire's PulseAudio layer) in a small child
 //! process, rather than linking PipeWire into the shell. The child costs a few MiB
@@ -47,12 +48,20 @@ async fn check() -> Option<bool> {
     in_use(out.as_deref()?)
 }
 
-/// Report whether something is recording, now and whenever it changes.
-pub fn watch(on_change: impl Fn(bool) + 'static) {
+/// A sound device itself changed, as opposed to a stream starting or stopping.
+pub fn is_device_event(line: &str) -> bool {
+    [" on sink #", " on source #", " on server", " on card #"].iter().any(|kind| line.contains(kind))
+}
+
+/// Report whether something is recording, now and whenever it changes; and call
+/// `on_devices` (coalesced) whenever a sound device changes.
+pub fn watch(on_change: impl Fn(bool) + 'static, on_devices: impl Fn() + 'static) {
     let on_change: Rc<dyn Fn(bool)> = Rc::new(on_change);
+    let on_devices: Rc<dyn Fn()> = Rc::new(crate::bus::coalesce(120, on_devices));
     glib::spawn_future_local(async move {
         loop {
-            if let Err(why) = follow(&on_change).await {
+            on_devices();
+            if let Err(why) = follow(&on_change, &on_devices).await {
                 eprintln!("recto-shell: microphone watch: {why}");
             }
             // pactl gone (or PipeWire restarting): try again later.
@@ -61,7 +70,7 @@ pub fn watch(on_change: impl Fn(bool) + 'static) {
     });
 }
 
-async fn follow(on_change: &Rc<dyn Fn(bool)>) -> Result<(), String> {
+async fn follow(on_change: &Rc<dyn Fn(bool)>, on_devices: &Rc<dyn Fn()>) -> Result<(), String> {
     let report = |value: Option<bool>| {
         if let Some(v) = value {
             on_change(v);
@@ -80,6 +89,9 @@ async fn follow(on_change: &Rc<dyn Fn(bool)>) -> Result<(), String> {
             .await
             .map_err(|e| format!("read failed: {e}"))?
             .ok_or("pactl stopped")?;
+        if is_device_event(&line) {
+            on_devices();
+        }
         if line.contains("source-output") && !pending.replace(true) {
             let pending = pending.clone();
             let on_change = on_change.clone();
@@ -106,5 +118,14 @@ mod tests {
         let call = r#"[{"properties": {"media.name": "Voice call", "application.name": "Meet"}}]"#;
         assert_eq!(in_use(call), Some(true));
         assert_eq!(in_use("not json"), None);
+    }
+
+    #[test]
+    fn device_events() {
+        use super::is_device_event;
+        assert!(is_device_event("Event 'change' on sink #52"));
+        assert!(is_device_event("Event 'change' on server #4294967295"));
+        assert!(!is_device_event("Event 'new' on sink-input #90"));
+        assert!(!is_device_event("Event 'remove' on source-output #12"));
     }
 }

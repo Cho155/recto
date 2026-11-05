@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12">
+  <!-- Recto ({{ theme_name }}): the current candidate, on the tint of selected text. -->
+  <rect width="12" height="12" rx="{{ shape.radius_small }}" fill="{{ t.selection }}"/>
+</svg>

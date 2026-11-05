@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+  <!-- Recto ({{ theme_name }}): the page, with a hairline edge. Sliced at 6 px. -->
+  <rect x="0.5" y="0.5" width="23" height="23" rx="{{ shape.radius_panel }}" fill="{{ t.base }}" stroke="{{ t.line }}" stroke-width="{{ shape.hairline }}"/>
+</svg>

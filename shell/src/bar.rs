@@ -1,10 +1,12 @@
 //! The bar: where you are on the left; on the right, only what needs attention,
-//! then the battery and the time.
+//! then quiet marks for network, Bluetooth, sound and battery, then the time.
 
 use crate::{
+    glyph::{self, Glyph},
     niri,
+    panels::Kind,
     state::Desktop,
-    status::{self, Alert, Battery},
+    status::{self, Alert, Battery, Mark, Tone},
     strings,
 };
 use gtk::{gdk, glib, prelude::*};
@@ -17,6 +19,8 @@ pub enum Event {
     ToggleInputMethod,
     /// Open or close the tray list under this widget.
     ToggleTray(gtk::Widget),
+    /// Open or close the Wi‑Fi, Bluetooth or Sound list under this widget.
+    ToggleList(Kind, gtk::Widget),
 }
 
 pub type Handler = Rc<dyn Fn(Event)>;
@@ -33,6 +37,10 @@ pub struct Notices {
     pub tray_items: usize,
     /// `None` on a machine without a battery.
     pub battery: Option<Battery>,
+    /// Network, Bluetooth and sound marks; `None` hides one.
+    pub network: Option<Mark>,
+    pub bluetooth: Option<Mark>,
+    pub sound: Option<Mark>,
 }
 
 pub struct Bar {
@@ -48,6 +56,8 @@ pub struct Bar {
     divider: gtk::Box,
     input_method: gtk::Button,
     tray: gtk::Button,
+    /// Network, Bluetooth and Sound, with the drawing inside each.
+    marks: Vec<(Kind, gtk::Button, gtk::DrawingArea)>,
     unread: gtk::Button,
     battery: gtk::Box,
     battery_bolt: gtk::DrawingArea,
@@ -138,6 +148,23 @@ impl Bar {
         let h = handler.clone();
         tray.connect_clicked(move |button| h(Event::ToggleTray(button.clone().upcast())));
 
+        // Network, Bluetooth, Sound: small marks, each opening its list.
+        let marks: Vec<(Kind, gtk::Button, gtk::DrawingArea)> = [
+            (Kind::Network, Glyph::Wifi { level: 0, off: false }),
+            (Kind::Bluetooth, Glyph::Bluetooth { off: false }),
+            (Kind::Sound, Glyph::Speaker { waves: 0, muted: false }),
+        ]
+        .into_iter()
+        .map(|(kind, initial)| {
+            let area = glyph::new(initial, 16);
+            let button = gtk::Button::builder().child(&area).valign(gtk::Align::Center).visible(false).build();
+            button.add_css_class("bar-mark");
+            let h = handler.clone();
+            button.connect_clicked(move |b| h(Event::ToggleList(kind, b.clone().upcast())));
+            (kind, button, area)
+        })
+        .collect();
+
         // The battery: a quiet figure, louder when it runs low.
         let battery_bolt = crate::glyph::new(crate::glyph::Glyph::Bolt, 11);
         let battery_text = label("", "battery-figure");
@@ -175,7 +202,15 @@ impl Bar {
 
         for widget in [workspace.upcast_ref::<gtk::Widget>(), strip.upcast_ref(), spacer.upcast_ref(),
                        notices.upcast_ref(), divider.upcast_ref(), input_method.upcast_ref(),
-                       tray.upcast_ref(), battery.upcast_ref(), unread.upcast_ref(), clock.upcast_ref()] {
+                       tray.upcast_ref()] {
+            root.append(widget);
+        }
+        let mark_group = hbox(2);
+        mark_group.add_css_class("bar-marks");
+        for (_, button, _) in &marks {
+            mark_group.append(button);
+        }
+        for widget in [mark_group.upcast_ref::<gtk::Widget>(), battery.upcast_ref(), unread.upcast_ref(), clock.upcast_ref()] {
             root.append(widget);
         }
 
@@ -209,6 +244,7 @@ impl Bar {
             divider,
             input_method,
             tray,
+            marks,
             unread,
             battery,
             battery_bolt,
@@ -312,6 +348,29 @@ impl Bar {
         self.tray.update_property(&[gtk::accessible::Property::Label(&tray_name)]);
 
         self.update_battery(notices.battery.as_ref());
+        for (kind, button, area) in &self.marks {
+            let mark = match kind {
+                Kind::Network => &notices.network,
+                Kind::Bluetooth => &notices.bluetooth,
+                Kind::Sound => &notices.sound,
+            };
+            let Some(mark) = mark else {
+                button.set_visible(false);
+                continue;
+            };
+            glyph::set(area, mark.glyph);
+            area.queue_draw();
+            for (class, tone) in [("off", Tone::Off), ("active", Tone::Active)] {
+                if mark.tone == tone {
+                    button.add_css_class(class);
+                } else {
+                    button.remove_css_class(class);
+                }
+            }
+            button.set_tooltip_text(Some(&mark.spoken));
+            button.update_property(&[gtk::accessible::Property::Label(&mark.spoken)]);
+            button.set_visible(true);
+        }
 
         self.unread.set_visible(notices.unread > 0);
         self.unread.update_property(&[gtk::accessible::Property::Label(&strings::unread(notices.unread))]);
@@ -336,6 +395,16 @@ impl Bar {
         self.battery.set_tooltip_text(Some(&figure.spoken));
         self.battery.update_property(&[gtk::accessible::Property::Label(&figure.spoken)]);
         self.battery.set_visible(true);
+    }
+
+    /// The output this bar is on, such as "eDP-1".
+    pub fn output(&self) -> Option<&str> {
+        self.output.as_deref()
+    }
+
+    /// The mark a list of this kind opens under, when it is shown.
+    pub fn mark(&self, kind: Kind) -> Option<gtk::Widget> {
+        self.marks.iter().find(|(k, b, _)| *k == kind && b.is_visible()).map(|(_, b, _)| b.clone().upcast())
     }
 
     pub fn update_clock(&self, now: &glib::DateTime) {

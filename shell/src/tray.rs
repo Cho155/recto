@@ -74,7 +74,8 @@ fn hold_keyboard(popover: &gtk::Popover, hold: bool) {
     }
 }
 
-fn popover(anchor: &gtk::Widget, class: &str) -> gtk::Popover {
+/// A list under a bar widget that takes the keyboard while open (also used by `panels`).
+pub(crate) fn popover(anchor: &gtk::Widget, class: &str) -> gtk::Popover {
     let p = gtk::Popover::new();
     p.add_css_class(class);
     p.set_has_arrow(false);

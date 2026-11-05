@@ -172,6 +172,12 @@ elif [[ -n "${NIRI_SOCKET:-}" ]]; then
         sleep 0.5
         setsid "$data/bin/recto-shell" >/dev/null 2>&1 < /dev/null &
         "$data/bin/recto-theme" session-start || true
+        # The input method's candidate window: re-read classicui.conf (Recto's theme).
+        # (fcitx5-remote -r reloads the input methods, not the look; tested.)
+        if pgrep -x fcitx5 >/dev/null; then
+            busctl --user call org.fcitx.Fcitx5 /controller org.fcitx.Fcitx.Controller1 \
+                ReloadAddonConfig s classicui >/dev/null 2>&1 || true
+        fi
         note "Reloaded. The idle lock and the password dialog start with the next login."
     fi
 elif systemctl --user -q is-active niri.service 2>/dev/null; then
@@ -187,6 +193,7 @@ else
 fi
 note ""
 note "Keys: Super+Return terminal · Super+Space search · Super+A Today"
+note "      Super+N Wi‑Fi · Super+B Bluetooth · Super+S sound"
 note "      Super+Shift+T Paper/Ink · Super+Alt+L lock · Super+Shift+/ all keys"
 note "Your own niri settings (monitors, keyboard layout) go in ~/.config/niri/local.kdl."
 note "To undo everything: ./install.sh --uninstall"

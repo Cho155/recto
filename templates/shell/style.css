@@ -38,6 +38,7 @@ window.recto-bar {
  * focused window's edge. */
 .bar button:focus-visible,
 .tray-list button:focus-visible,
+.controls-list scale:focus-visible slider,
 .today button:focus-visible,
 .note button:focus-visible,
 .search button.search-row:focus-visible {
@@ -462,13 +463,15 @@ progressbar.osd-level.muted progress {
 }
 
 popover.tray,
-popover.tray-menu {
+popover.tray-menu,
+popover.controls {
   background: none;
   box-shadow: none;
 }
 
 popover.tray > contents,
-popover.tray-menu > contents {
+popover.tray-menu > contents,
+popover.controls > contents {
   padding: 6px;
   background-color: {{ t.base }};
   color: {{ t.text }};
@@ -546,7 +549,8 @@ button.menu-item {
 /* ── Today: theme switch (phase 4) ───────────────── */
 
 /* Paper · Ink · Auto: three words; the current one is underlined in clay. */
-.today button.segment {
+.today button.segment,
+.controls-list button.segment {
   min-height: 32px;
   padding: 0 6px;
   border: none;
@@ -555,16 +559,19 @@ button.menu-item {
   font-style: italic;
 }
 
-.today button.segment.active {
+.today button.segment.active,
+.controls-list button.segment.active {
   color: {{ t.text }};
 }
 
-.today button.segment.active label {
+.today button.segment.active label,
+.controls-list button.segment.active label {
   text-decoration-line: underline;
   text-decoration-color: {{ t.accent }};
 }
 
-.today .segment-sep {
+.today .segment-sep,
+.controls-list .segment-sep {
   color: {{ t.quiet }};
 }
 
@@ -782,4 +789,129 @@ window.leaving .note {
 .tray-list button:active,
 .search button.search-row:active {
   background-color: {{ t.line }};
+}
+
+/* ── Network, Bluetooth and Sound ────────────────── */
+
+/* On the bar: three small line marks in the secondary colour; fainter when
+ * off, in the text colour when something is connected. */
+.bar-marks {
+  margin-right: 8px;
+}
+
+.bar button.bar-mark {
+  min-width: 26px;
+  min-height: 24px;
+  padding: 0;
+  color: {{ t.muted }};
+}
+
+.bar button.bar-mark.off {
+  color: {{ t.mark }};
+}
+
+.bar button.bar-mark.active {
+  color: {{ t.text }};
+}
+
+/* Their lists: the tray's slip of paper, with a running head on top. */
+.controls-list {
+  min-width: 300px;
+}
+
+.controls-heading {
+  padding: 2px 2px 4px 10px;
+}
+
+.controls-title {
+  color: {{ t.text }};
+  font-size: 15px;
+  font-feature-settings: "c2sc", "smcp", "onum";
+  letter-spacing: 1px;
+}
+
+.controls-mark {
+  color: {{ t.muted }};
+}
+
+.controls-list button.controls-link {
+  color: {{ t.muted }};
+  font-style: italic;
+}
+
+.controls-caption {
+  padding: 0 10px 6px;
+  color: {{ t.muted }};
+  font-size: 14px;
+  font-style: italic;
+}
+
+.controls-level-row {
+  padding: 0 4px 2px 10px;
+}
+
+.controls-value {
+  color: {{ t.muted }};
+  font-size: 14px;
+  font-feature-settings: "tnum", "onum";
+}
+
+/* The slider: a hairline rule, inked up to the level, with a small round knob. */
+scale.controls-level {
+  padding: 10px 0;
+}
+
+scale.controls-level trough {
+  min-height: 2px;
+  border: none;
+  border-radius: 1px;
+  background-color: {{ t.line }};
+  outline: none;
+}
+
+scale.controls-level highlight {
+  min-height: 2px;
+  border: none;
+  border-radius: 1px;
+  background-image: none;
+  background-color: {{ t.text }};
+}
+
+scale.controls-level slider {
+  min-width: 12px;
+  min-height: 12px;
+  margin: -6px;
+  border: {{ shape.hairline }}px solid {{ t.text }};
+  border-radius: 7px;
+  background-color: {{ t.base }};
+  background-image: none;
+  box-shadow: none;
+}
+
+/* Muted: the level stays visible but greyed, so unmuting brings it back. */
+scale.controls-level.muted highlight {
+  background-color: {{ t.mark }};
+}
+
+scale.controls-level.muted slider {
+  border-color: {{ t.mark }};
+}
+
+.controls-password {
+  padding: 2px 4px 8px 10px;
+}
+
+.controls-password entry {
+  min-height: 30px;
+  padding: 0 8px;
+  border: {{ shape.hairline }}px solid {{ t.line }};
+  border-radius: {{ shape.radius_small }}px;
+  background-color: {{ t.base }};
+  color: {{ t.text }};
+  box-shadow: none;
+  outline: none;
+}
+
+.controls-password entry:focus-within {
+  border-color: {{ t.accent }};
 }

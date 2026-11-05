@@ -3,6 +3,9 @@
 //!   recto-shell                          start (does nothing if already running)
 //!   recto-shell toggle-today             open or close Today
 //!   recto-shell toggle-search            open or close Search
+//!   recto-shell toggle-network           open or close the Wi‑Fi list
+//!   recto-shell toggle-bluetooth         open or close the Bluetooth list
+//!   recto-shell toggle-sound             open or close the Sound list
 //!   recto-shell volume up|down|mute      change the volume and show it
 //!   recto-shell mic-mute                 mute or unmute the microphone
 //!   recto-shell brightness up|down       change the screen brightness
@@ -14,6 +17,8 @@
 //! (GApplication uniqueness), so niri key bindings can call it directly.
 
 mod bar;
+mod bluetooth;
+mod bus;
 mod clock;
 mod controls;
 mod daylight;
@@ -30,8 +35,10 @@ mod mpris;
 mod niri;
 mod notify;
 mod osd;
+mod panels;
 mod search;
 mod sni;
+mod sound;
 mod state;
 mod status;
 mod strings;
@@ -40,6 +47,7 @@ mod system;
 mod today;
 mod tokens;
 mod tray;
+mod wifi;
 
 use gtk::{gdk, gio, glib, prelude::*};
 use std::{
@@ -49,8 +57,11 @@ use std::{
 };
 
 const APP_ID: &str = "org.recto.Shell";
-const USAGE: &str = "usage: recto-shell [toggle-today | toggle-search | volume up|down|mute | mic-mute | \
-                     brightness up|down | focus [minutes|off] | reload-style | quit]";
+const USAGE: &str = "usage: recto-shell [toggle-today | toggle-search | toggle-network | toggle-bluetooth | \
+                     toggle-sound | volume up|down|mute | mic-mute | brightness up|down | focus [minutes|off] | \
+                     reload-style | quit]";
+/// How long "Find new devices" searches before it stops by itself.
+const BLUETOOTH_SEARCH: Duration = Duration::from_secs(30);
 const DEFAULT_FOCUS_MINUTES: i64 = 60;
 
 struct Shell {
@@ -71,6 +82,17 @@ struct Shell {
     auto_pending: RefCell<Option<String>>,
     focus_timer: RefCell<Option<glib::SourceId>>,
     hold: RefCell<Option<gio::ApplicationHoldGuard>>,
+    /// NetworkManager and BlueZ are reached through this, once connected.
+    system_bus: RefCell<Option<gio::DBusConnection>>,
+    signals: RefCell<Vec<gio::SignalSubscription>>,
+    wifi_device: RefCell<Option<String>>,
+    /// Read while the Wi‑Fi list is open.
+    networks: RefCell<Vec<wifi::Network>>,
+    bluetooth: RefCell<Option<bluetooth::Bluetooth>>,
+    sound: RefCell<Option<sound::Sound>>,
+    /// The Wi‑Fi, Bluetooth or Sound list, when one is open.
+    panel: RefCell<Option<Rc<panels::Panel>>>,
+    search_timer: RefCell<Option<glib::SourceId>>,
 }
 
 /// Wrap a method so a callback holds only a weak reference to the shell.
@@ -142,16 +164,9 @@ impl Shell {
             }
         });
         *self.tray.borrow_mut() = Some(tray);
-        mic::watch(weak(self, |s, in_use: bool| s.on_mic(in_use)));
-
-        let w = Rc::downgrade(self);
-        glib::spawn_future_local(async move {
-            let muted = controls::read_output_muted().await;
-            if let Some(shell) = w.upgrade() {
-                shell.status.borrow_mut().muted = muted;
-                shell.refresh_notices();
-            }
-        });
+        let on_sound = weak(self, |s, ()| s.refresh_sound());
+        mic::watch(weak(self, |s, in_use: bool| s.on_mic(in_use)), move || on_sound(()));
+        self.watch_system_bus();
     }
 
     fn monitors() -> Vec<gdk::Monitor> {
@@ -189,6 +204,7 @@ impl Shell {
                     tray.toggle_panel(&anchor);
                 }
             }
+            bar::Event::ToggleList(kind, anchor) => s.toggle_list(kind, Some(anchor)),
         }));
         let bars: Vec<bar::Bar> = Self::monitors()
             .iter()
@@ -210,13 +226,17 @@ impl Shell {
             Some((strings::focus_until(&dt), inbox.held))
         });
         let tray = self.tray.borrow().clone();
+        let status = self.status.borrow();
         bar::Notices {
-            alerts: status::alerts(&self.status.borrow()),
+            alerts: status::alerts(&status),
+            network: status::network_mark(&status),
+            bluetooth: status::bluetooth_mark(&status),
+            sound: status::sound_mark(&status),
             focus,
             unread: inbox.unread(),
             input_method: self.input_method.borrow().clone(),
             tray_items: tray.map_or(0, |t| t.listed().len()),
-            battery: self.status.borrow().battery.clone(),
+            battery: status.battery.clone(),
         }
     }
 
@@ -566,11 +586,328 @@ impl Shell {
             let outcome = controls::apply(control).await;
             let Some(shell) = w.upgrade() else { return };
             shell.osd.show(&shell.app, shell.focused_monitor().as_ref(), &outcome);
-            if let Some(muted) = outcome.output_muted {
-                shell.status.borrow_mut().muted = Some(muted);
+        });
+    }
+
+    // ── Wi‑Fi, Bluetooth and Sound ──────────────────────────────────────
+
+    fn watch_system_bus(self: &Rc<Self>) {
+        let w = Rc::downgrade(self);
+        glib::spawn_future_local(async move {
+            let Some(connection) = bus::system().await else { return };
+            let Some(shell) = w.upgrade() else { return };
+            *shell.system_bus.borrow_mut() = Some(connection.clone());
+            let on_wifi = weak(&shell, |s, ()| s.refresh_wifi());
+            let on_bluetooth = weak(&shell, |s, ()| s.refresh_bluetooth());
+            shell.signals.borrow_mut().extend([
+                wifi::watch(&connection, move || on_wifi(())),
+                bluetooth::watch(&connection, move || on_bluetooth(())),
+            ]);
+            shell.refresh_wifi();
+            shell.refresh_bluetooth();
+        });
+    }
+
+    fn list_is(&self, kind: panels::Kind) -> bool {
+        self.panel.borrow().as_ref().is_some_and(|p| p.kind == kind)
+    }
+
+    /// Read Wi‑Fi again: the bar's mark always, the networks while the list is open.
+    fn refresh_wifi(self: &Rc<Self>) {
+        let Some(c) = self.system_bus.borrow().clone() else { return };
+        let w = Rc::downgrade(self);
+        glib::spawn_future_local(async move {
+            let device = wifi::device(&c).await;
+            let summary = match &device {
+                Some(d) => Some(wifi::summary(&c, d).await),
+                None => None,
+            };
+            let listing = w.upgrade().is_some_and(|s| s.list_is(panels::Kind::Network));
+            let networks = match (&device, listing) {
+                (Some(d), true) => wifi::list(&c, d).await,
+                _ => Vec::new(),
+            };
+            let Some(shell) = w.upgrade() else { return };
+            *shell.wifi_device.borrow_mut() = device;
+            *shell.networks.borrow_mut() = networks;
+            let changed = {
+                let mut status = shell.status.borrow_mut();
+                let changed = status.wifi != summary;
+                status.wifi = summary;
+                changed
+            };
+            if changed {
                 shell.refresh_notices();
             }
+            shell.draw_list();
         });
+    }
+
+    fn refresh_bluetooth(self: &Rc<Self>) {
+        let Some(c) = self.system_bus.borrow().clone() else { return };
+        let w = Rc::downgrade(self);
+        glib::spawn_future_local(async move {
+            let bt = bluetooth::read(&c).await;
+            let Some(shell) = w.upgrade() else { return };
+            let state = bt.as_ref().map(|b| status::BluetoothState {
+                powered: b.powered,
+                connected: b.connected().map(|d| d.name.clone()).collect(),
+            });
+            let changed = {
+                let mut status = shell.status.borrow_mut();
+                let changed = status.bluetooth != state;
+                status.bluetooth = state;
+                changed
+            };
+            *shell.bluetooth.borrow_mut() = bt;
+            if changed {
+                shell.refresh_notices();
+            }
+            shell.draw_list();
+        });
+    }
+
+    fn refresh_sound(self: &Rc<Self>) {
+        let w = Rc::downgrade(self);
+        glib::spawn_future_local(async move {
+            let sound = sound::read().await;
+            let Some(shell) = w.upgrade() else { return };
+            let volume = sound.as_ref().and_then(|s| s.output()).map(|d| status::Volume { percent: d.percent, muted: d.muted });
+            let changed = {
+                let mut status = shell.status.borrow_mut();
+                let changed = status.volume != volume;
+                status.volume = volume;
+                changed
+            };
+            *shell.sound.borrow_mut() = sound;
+            if changed {
+                shell.refresh_notices();
+            }
+            shell.draw_list();
+        });
+    }
+
+    /// The bar on the monitor you are looking at.
+    fn focused_mark(&self, kind: panels::Kind) -> Option<gtk::Widget> {
+        let output = self.desktop.borrow().focused_workspace().and_then(|w| w.output.clone());
+        let bars = self.bars.borrow();
+        let bar = bars.iter().find(|b| b.output() == output.as_deref()).or(bars.first())?;
+        bar.mark(kind)
+    }
+
+    fn toggle_list(self: &Rc<Self>, kind: panels::Kind, anchor: Option<gtk::Widget>) {
+        let open = self.panel.borrow_mut().take();
+        if let Some(open) = open {
+            self.list_closed(&open);
+            open.close();
+            if open.kind == kind {
+                return;
+            }
+        }
+        let Some(anchor) = anchor.or_else(|| self.focused_mark(kind)) else {
+            // No mark on the bar: there is nothing of this kind here.
+            let (name, why) = match kind {
+                panels::Kind::Network => ("Network", "No network service"),
+                panels::Kind::Bluetooth => ("Bluetooth", "No Bluetooth adapter"),
+                panels::Kind::Sound => ("Sound", "No audio device"),
+            };
+            let outcome = controls::Outcome { name, reading: controls::Reading::Unavailable(why) };
+            self.osd.show(&self.app, self.focused_monitor().as_ref(), &outcome);
+            return;
+        };
+        self.close_today();
+        self.close_search();
+        let handler: panels::Handler = Rc::new(weak(self, |s, event: panels::Event| s.on_list(event)));
+        *self.panel.borrow_mut() = Some(panels::Panel::open(kind, &anchor, handler));
+        self.draw_list();
+        match kind {
+            panels::Kind::Network => {
+                self.refresh_wifi();
+                let (c, device) = (self.system_bus.borrow().clone(), self.wifi_device.borrow().clone());
+                if let (Some(c), Some(device)) = (c, device) {
+                    glib::spawn_future_local(async move { wifi::scan(&c, &device).await });
+                }
+            }
+            panels::Kind::Bluetooth => self.refresh_bluetooth(),
+            panels::Kind::Sound => self.refresh_sound(),
+        }
+    }
+
+    /// Tidy up after a list has gone: a Bluetooth search it started ends with it.
+    fn list_closed(&self, panel: &panels::Panel) {
+        if panel.kind != panels::Kind::Bluetooth {
+            return;
+        }
+        if let Some(timer) = self.search_timer.borrow_mut().take() {
+            timer.remove();
+            self.bluetooth_search(false);
+        }
+    }
+
+    fn draw_list(self: &Rc<Self>) {
+        let Some(panel) = self.panel.borrow().clone() else { return };
+        match panel.kind {
+            panels::Kind::Network => {
+                let (wifi, cable) = {
+                    let st = self.status.borrow();
+                    (st.wifi.as_ref().map(|w| w.enabled), st.network_wired && st.online == Some(true))
+                };
+                let networks = self.networks.borrow().clone();
+                panel.show_network(wifi, cable, &networks, wifi::settings_app());
+            }
+            panels::Kind::Bluetooth => {
+                let bt = self.bluetooth.borrow().clone();
+                match bt {
+                    Some(bt) => panel.show_bluetooth(&bt, bluetooth::settings_app()),
+                    None => {
+                        self.panel.borrow_mut().take();
+                        panel.close();
+                    }
+                }
+            }
+            panels::Kind::Sound => {
+                let sound = self.sound.borrow().clone();
+                if let Some(sound) = sound {
+                    panel.show_sound(&sound, sound::mixer());
+                }
+            }
+        }
+    }
+
+    /// Note something beside a row of the open list.
+    fn note(self: &Rc<Self>, key: &str, text: Option<&str>) {
+        let panel = self.panel.borrow().clone();
+        if let Some(panel) = panel {
+            panel.note(key, text);
+            self.draw_list();
+        }
+    }
+
+    fn bluetooth_search(&self, on: bool) {
+        let c = self.system_bus.borrow().clone();
+        let adapter = self.bluetooth.borrow().as_ref().map(|b| b.adapter.clone());
+        if let (Some(c), Some(adapter)) = (c, adapter) {
+            glib::spawn_future_local(async move { bluetooth::set_discovering(&c, &adapter, on).await });
+        }
+    }
+
+    fn on_list(self: &Rc<Self>, event: panels::Event) {
+        use panels::Event as E;
+        if std::env::var_os("RECTO_DEBUG").is_some() {
+            let focus = self.panel.borrow().as_ref().and_then(|p| p.focus_name());
+            eprintln!("recto-shell: list event {}; focus {focus:?}", event.name());
+        }
+        let c = self.system_bus.borrow().clone();
+        let w = Rc::downgrade(self);
+        // Run a change, then show what it did (or why it did not).
+        let run = |future: std::pin::Pin<Box<dyn std::future::Future<Output = ()>>>| glib::spawn_future_local(future);
+        match event {
+            E::Closed => {
+                let closed = self.panel.borrow().as_ref().filter(|p| !p.is_open()).cloned();
+                if let Some(panel) = closed {
+                    self.panel.borrow_mut().take();
+                    self.list_closed(&panel);
+                }
+            }
+            E::Redraw => self.draw_list(),
+            E::WifiPower(on) => {
+                let Some(c) = c else { return };
+                run(Box::pin(async move {
+                    let result = wifi::set_enabled(&c, on).await;
+                    let Some(shell) = w.upgrade() else { return };
+                    if let Err(why) = result {
+                        eprintln!("recto-shell: Wi‑Fi power: {why}");
+                        shell.note("power", Some("Couldn’t change Wi‑Fi."));
+                    }
+                    shell.refresh_wifi();
+                }));
+            }
+            E::WifiConnect(network, password) => {
+                let (Some(c), Some(device)) = (c, self.wifi_device.borrow().clone()) else { return };
+                self.note(&network.ssid, Some("Connecting…"));
+                run(Box::pin(async move {
+                    let result = wifi::connect(&c, &device, &network, password.as_deref()).await;
+                    let Some(shell) = w.upgrade() else { return };
+                    match result {
+                        Ok(()) => shell.note(&network.ssid, None),
+                        Err(why) => {
+                            eprintln!("recto-shell: connecting to {}: {why}", network.ssid);
+                            let shown = if why.starts_with("Couldn") || why.starts_with("Wrong") { why } else { "Couldn’t connect".to_owned() };
+                            shell.note(&network.ssid, Some(&shown));
+                        }
+                    }
+                    shell.refresh_wifi();
+                }));
+            }
+            E::WifiDisconnect => {
+                let (Some(c), Some(device)) = (c, self.wifi_device.borrow().clone()) else { return };
+                run(Box::pin(async move { wifi::disconnect(&c, &device).await }));
+            }
+            E::BluetoothPower(on) => {
+                let (Some(c), Some(adapter)) = (c, self.bluetooth.borrow().as_ref().map(|b| b.adapter.clone())) else { return };
+                run(Box::pin(async move {
+                    let result = bluetooth::set_powered(&c, &adapter, on).await;
+                    let Some(shell) = w.upgrade() else { return };
+                    if let Err(why) = result {
+                        eprintln!("recto-shell: Bluetooth power: {why}");
+                        let blocked = why.to_lowercase().contains("rfkill") || why.contains("Blocked");
+                        shell.note("power", Some(if blocked { "Turned off by a switch or key." } else { "Couldn’t change Bluetooth." }));
+                    }
+                }));
+            }
+            E::BluetoothConnect(device, on) => {
+                let Some(c) = c else { return };
+                self.note(&device, Some(if on { "Connecting…" } else { "Disconnecting…" }));
+                run(Box::pin(async move {
+                    let result = bluetooth::set_connected(&c, &device, on).await;
+                    let Some(shell) = w.upgrade() else { return };
+                    if let Err(why) = &result {
+                        eprintln!("recto-shell: Bluetooth {device}: {why}");
+                    }
+                    shell.note(&device, result.err().map(|_| "Couldn’t connect"));
+                }));
+            }
+            E::BluetoothPair(device) => {
+                let Some(c) = c else { return };
+                self.note(&device, Some("Pairing…"));
+                run(Box::pin(async move {
+                    let result = bluetooth::pair(&c, &device).await;
+                    let Some(shell) = w.upgrade() else { return };
+                    if let Err(why) = &result {
+                        eprintln!("recto-shell: pairing {device}: {why}");
+                    }
+                    shell.note(&device, result.err().map(|_| "Couldn’t pair"));
+                }));
+            }
+            E::BluetoothSearch => {
+                self.bluetooth_search(true);
+                let stop = weak(self, |s, ()| {
+                    s.search_timer.borrow_mut().take();
+                    s.bluetooth_search(false);
+                });
+                let timer = glib::timeout_add_local_once(BLUETOOTH_SEARCH, move || stop(()));
+                if let Some(old) = self.search_timer.borrow_mut().replace(timer) {
+                    old.remove();
+                }
+            }
+            E::Volume { output, name, percent } => {
+                run(Box::pin(async move { sound::set_volume(output, &name, percent).await }));
+            }
+            E::Mute { output, name, muted } => {
+                run(Box::pin(async move { sound::set_muted(output, &name, muted).await }));
+            }
+            E::UseDevice { output, name } => {
+                run(Box::pin(async move { sound::set_default(output, &name).await }));
+            }
+            E::Launch(program) => {
+                let open = self.panel.borrow_mut().take();
+                if let Some(open) = open {
+                    self.list_closed(&open);
+                    open.close();
+                }
+                spawn(&[program]);
+            }
+        }
     }
 
     // ── Commands ─────────────────────────────────────────────────────────
@@ -590,6 +927,15 @@ impl Shell {
             Some("toggle-search") => {
                 self.start();
                 self.toggle_search();
+            }
+            Some(list @ ("toggle-network" | "toggle-bluetooth" | "toggle-sound")) => {
+                self.start();
+                let kind = match list {
+                    "toggle-network" => panels::Kind::Network,
+                    "toggle-bluetooth" => panels::Kind::Bluetooth,
+                    _ => panels::Kind::Sound,
+                };
+                self.toggle_list(kind, None);
             }
             Some("focus") => {
                 self.start();
@@ -650,6 +996,14 @@ fn main() -> glib::ExitCode {
         auto_pending: RefCell::default(),
         focus_timer: RefCell::default(),
         hold: RefCell::default(),
+        system_bus: RefCell::default(),
+        signals: RefCell::default(),
+        wifi_device: RefCell::default(),
+        networks: RefCell::default(),
+        bluetooth: RefCell::default(),
+        sound: RefCell::default(),
+        panel: RefCell::default(),
+        search_timer: RefCell::default(),
     });
     // Child processes end with the shell.
     app.connect_shutdown(|_| mic::stop());

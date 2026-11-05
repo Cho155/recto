@@ -48,13 +48,16 @@ cd ~/Projects/recto
 
 ## 快捷键
 
-记不住时按 **Super+Shift+/**，屏幕上会列出常用的快捷键（niri 自带的列表，说明由 Recto 写）。Super 就是 Windows 键。
+记不住时按 **Super+Shift+/**，屏幕上会列出常用的快捷键（niri 自带的列表，说明由 Recto 写）。Super 就是 Windows 键。状态栏右边的 Wi‑Fi、蓝牙、声音三个小标记也可以直接点。
 
 | 按键 | 作用 |
 | --- | --- |
 | Super+Enter 或 Super+T | 打开终端 |
 | Super+Space 或 Super+D | 搜索应用和操作 |
 | Super+A | 今日页：通知、主题（Paper · Ink · Auto）、专注模式 |
+| Super+N | Wi‑Fi：开关、附近的网络、连接 |
+| Super+B | 蓝牙：开关、已配对的设备、搜索新设备 |
+| Super+S | 声音：音量、静音、输出和输入设备 |
 | Super+Shift+T | 在 Paper 和 Ink 之间切换 |
 | Super+Alt+L | 锁屏 |
 | Super+Q | 关闭窗口 |

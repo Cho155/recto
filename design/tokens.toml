@@ -10,54 +10,54 @@ default_theme = "paper"   # paper | ink; "recto-theme switch auto" follows the [
 # ── Paper (light) ─────────────────────────
 [theme.paper]
 scheme      = "light"     # what apps call this theme
-wallpaper   = "#F0EEE6"
-base        = "#FAF9F5"
-raised      = "#F0EEE6"
-line        = "#E3E0D6"
-text        = "#141413"  # 17.5:1 on base
-muted       = "#6B6A65"  # 5.14:1 on base
-accent      = "#D97757"  # 2.96:1 on base: marks only, never text
-accent_text = "#B4532E"  # 4.73:1 on base
-accent_fg   = "#141413"  # text on an accent fill: 5.9:1 (base on accent fails at 2.96)
-success     = "#5C6E45"  # 5.29:1 on base
-success_fg  = "#FAF9F5"  # 5.29:1 on success
-warning     = "#8A6414"  # 5.09:1 on base
-warning_fg  = "#FAF9F5"  # 5.09:1 on warning
-danger      = "#B03A2E"  # 5.71:1 on base
-danger_fg   = "#FAF9F5"  # 5.71:1 on danger
-info        = "#3F6E9C"  # 5.08:1 on base
-backdrop    = "#E6E3DA"  # behind workspaces in the overview, decorative
-contour     = "#DCD7CA"  # wallpaper line art, decorative
-plate_line  = "#A29C8F"  # a plate (your line drawing) printed on the desk, decorative
-quiet       = "#CFCABE"  # inactive marks: other workspaces, off-screen columns
-mark        = "#8A8880"  # visible but unfocused marks (3.4:1, a shape, not text)
-selection   = "#F3DFD5"  # 20% clay over base; text on it 14.3:1
-cursor      = "#B4532E"  # deeper clay: plain clay is 2.94:1 on paper, below the 3:1 for UI parts
-cursor_text = "#FAF9F5"
+wallpaper   = "#EDE6D7"
+base        = "#F7F2E7"
+raised      = "#EEE8DB"
+line        = "#DFD7C6"
+text        = "#141413"  # 16.51:1 on base
+muted       = "#6A665E"  # 5.12:1 on base
+accent      = "#D97757"  # 2.80:1 on base: marks only, never text
+accent_text = "#B0512D"  # 4.63:1 on base
+accent_fg   = "#141413"  # text on an accent fill: 5.9:1 (base on accent fails at 2.80)
+success     = "#5C6E45"  # 4.99:1 on base
+success_fg  = "#F7F2E7"  # 4.99:1 on success
+warning     = "#8A6414"  # 4.81:1 on base
+warning_fg  = "#F7F2E7"  # 4.81:1 on warning
+danger      = "#B03A2E"  # 5.39:1 on base
+danger_fg   = "#F7F2E7"  # 5.39:1 on danger
+info        = "#3F6E9C"  # 4.80:1 on base
+backdrop    = "#E4DCCB"  # behind workspaces in the overview, decorative
+contour     = "#D8CFBC"  # wallpaper line art, decorative
+plate_line  = "#A1978A"  # a plate (your line drawing) printed on the desk, decorative
+quiet       = "#CDC4B2"  # inactive marks: other workspaces, off-screen columns
+mark        = "#8A8880"  # visible but unfocused marks (3.18:1, a shape, not text)
+selection   = "#F1D9CA"  # 20% clay over base; text on it 13.6:1
+cursor      = "#B0512D"  # deeper clay: plain clay is 2.80:1 on paper, below the 3:1 for UI parts
+cursor_text = "#F7F2E7"
 shadow      = "#14141314" # 8% ink: windows at rest, cards
 shadow_lift = "#1414131F" # 12% ink: the active window, Today, Search
 shadow_near = "#1414130F" # 6% ink: the tight contact line under panels and cards
-veil        = "#FAF9F5"   # Today's page laid over the desk: opaque, so nothing shows through
+veil        = "#F7F2E7"   # Today's page laid over the desk: opaque, so nothing shows through
 terminal_alpha = 0.90
 
-# ANSI colors. Ratios measured on the terminal's effective background (#F9F8F4).
+# ANSI colors. Ratios measured on the terminal's effective background (#F6F1E5).
 [theme.paper.ansi]
-black          = "#2B2A27"  # 13.5
-red            = "#B03A2E"  # 5.66
-green          = "#4F6B3A"  # 5.65
-yellow         = "#8A6414"  # 5.05
-blue           = "#3B6A99"  # 5.33
-magenta        = "#8A4D78"  # 5.79
-cyan           = "#2C716D"  # 5.36
-white          = "#6B6A65"  # 5.10
-bright_black   = "#7A7871"  # 4.16, dim on purpose (suggestions, comments)
-bright_red     = "#C0442F"  # 4.81
-bright_green   = "#557542"  # 4.93
-bright_yellow  = "#946B12"  # 4.52
-bright_blue    = "#41709F"  # 4.89
-bright_magenta = "#955282"  # 5.19
-bright_cyan    = "#2F7873"  # 4.87
-bright_white   = "#8A8880"  # 3.34, dim on purpose
+black          = "#2B2A27"  # 12.73
+red            = "#B03A2E"  # 5.34
+green          = "#4F6B3A"  # 5.33
+yellow         = "#8A6414"  # 4.76
+blue           = "#3B6A99"  # 5.03
+magenta        = "#8A4D78"  # 5.46
+cyan           = "#2C716D"  # 5.05
+white          = "#6B6A65"  # 4.81
+bright_black   = "#7A7871"  # 3.92, dim on purpose (suggestions, comments)
+bright_red     = "#C0442F"  # 4.53
+bright_green   = "#557542"  # 4.65
+bright_yellow  = "#8D6611"  # 4.61
+bright_blue    = "#41709F"  # 4.61
+bright_magenta = "#955282"  # 4.89
+bright_cyan    = "#2F7873"  # 4.59
+bright_white   = "#8A8880"  # 3.15, dim on purpose
 
 # ── Ink (dark) ────────────────────────────
 [theme.ink]
@@ -139,6 +139,7 @@ terminal_line = 14.25  # terminal line height (19 px at scale 1): air between li
 launcher      = 12
 notification  = 10.5
 document      = 11     # reading text in apps (GNOME's document font): the serif
+input_method  = 12     # fcitx5's candidates: the serif, Chinese in Noto Serif CJK
 
 # ── Shape and space (logical px) ──────────
 [shape]

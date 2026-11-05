@@ -45,6 +45,9 @@ CONFIG = Path(os.environ.get("XDG_CONFIG_HOME") or HOME / ".config")
 CACHE = Path(os.environ.get("XDG_CACHE_HOME") or HOME / ".cache") / "recto"
 BUILD_MARK = ".recto-build"
 
+# fcitx5's candidate window: a theme directory per Recto theme.
+FCITX5_THEME = ("theme.conf", "panel.svg", "highlight.svg", "prev.svg", "next.svg", "arrow.svg", "radio.svg")
+
 # Template (under templates/) and whether it is rendered once or once per theme.
 TARGETS = [
     ("niri/config.kdl", "shared"),
@@ -64,7 +67,8 @@ TARGETS = [
     ("qt6ct/qt6ct.conf", "shared"),
     ("fontconfig/recto.conf", "shared"),
     ("fastfetch/config.jsonc", "theme"),
-]
+    ("fcitx5/classicui.conf", "shared"),
+] + [(f"fcitx5/{name}", "theme") for name in FCITX5_THEME]
 
 SHELL_BINARY = REPO / "shell" / "target" / "release" / "recto-shell"
 
@@ -80,6 +84,8 @@ LINKS = [
     ("qt6ct/qt6ct.conf", "shared/qt6ct/qt6ct.conf"),   # points at current/qt6ct/recto.conf
     ("fontconfig/conf.d/50-recto.conf", "shared/fontconfig/recto.conf"),   # CJK faces (D99)
     ("fastfetch/config.jsonc", "current/fastfetch/config.jsonc"),
+    # The candidate window follows the system's light or dark setting by itself.
+    ("fcitx5/conf/classicui.conf", "shared/fcitx5/classicui.conf"),
 ]
 
 # The same, for files under ~/.local/share. GtkSourceView pairs a light and a
@@ -87,6 +93,9 @@ LINKS = [
 DATA_LINKS = [
     (f"gtksourceview-{v}/styles/{name}.xml", f"{theme}/gtksourceview/recto.xml")
     for v in (4, 5) for name, theme in (("recto", "paper"), ("recto-dark", "ink"))
+] + [
+    (f"fcitx5/themes/recto-{theme}/{name}", f"{theme}/fcitx5/{name}")
+    for theme in ("paper", "ink") for name in FCITX5_THEME
 ]
 
 
@@ -257,7 +266,12 @@ def f_css_easing(v, arg, where):
     return EASINGS[v]
 
 
+def f_title(v, arg, where):
+    return str(v)[:1].upper() + str(v)[1:]
+
+
 FILTERS = {
+    "title": f_title,            # paper -> Paper
     "bare": f_bare,              # #FAF9F5 -> faf9f5
     "bare_alpha": f_bare_alpha,  # #FAF9F5 | bare_alpha(1) -> faf9f5ff
     "hash_alpha": f_hash_alpha,  # #D97757 | hash_alpha(0.35) -> #d9775759

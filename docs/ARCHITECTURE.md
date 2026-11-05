@@ -28,7 +28,7 @@
 
 | 文件 | 职责 |
 | --- | --- |
-| `main.rs` | 单实例与命令（`toggle-today`、`volume`、`brightness`、`mic-mute`、`focus`、`reload-style`、`quit`）；把各部分串起来 |
+| `main.rs` | 单实例与命令（`toggle-today`、`toggle-search`、`toggle-network`、`toggle-bluetooth`、`toggle-sound`、`volume`、`brightness`、`mic-mute`、`focus`、`reload-style`、`quit`）；把各部分串起来 |
 | `state.rs` | 由 niri 事件重建的桌面状态：工作区、窗口、列。纯数据，带单元测试 |
 | `niri.rs` | niri IPC：在 GTK 主循环里异步读事件流，断开后自动重连；发送动作 |
 | `bar.rs` | 状态栏：工作区圆点与名称（点击打开总览）、列缩略、日期与时间（点击打开今日页）；在栏上滚动切换工作区 |
@@ -38,13 +38,18 @@
 | `margin.rs` | 右侧通知卡片；有通知时才存在；每张卡片放在伸缩容器里，进出时其他卡片平滑让位 |
 | `osd.rs` | 音量和亮度提示；显示 1.2 秒后销毁 |
 | `controls.rs` | 通过 wpctl / brightnessctl 调节并读回，带单元测试 |
-| `status.rs` | 电量、网络、静音的按需提示与今日页的句子。纯数据，带单元测试 |
+| `status.rs` | 电量数字、网络／蓝牙／声音的标记、按需提示与今日页的句子。纯数据，带单元测试 |
 | `system.rs` | 通过系统总线读取 UPower 与 NetworkManager |
 | `tray.rs` | 托盘：StatusNotifierWatcher 与宿主、托盘列表与菜单弹层 |
 | `sni.rs` | 托盘项的地址、名称与说明。纯数据，带单元测试 |
 | `dbusmenu.rs` | 解析与展平应用菜单。纯数据，带单元测试 |
 | `ime.rs` | fcitx5 输入法指示与切换 |
-| `mic.rs` | 通过 `pactl subscribe` 判断是否有程序在录音；子进程随外壳一起结束 |
+| `mic.rs` | 通过 `pactl subscribe` 判断是否有程序在录音，并在声音设备变化时通知外壳；子进程随外壳一起结束 |
+| `panels.rs` | Wi‑Fi、蓝牙、声音三张列表（状态栏标记下的弹层，D104） |
+| `wifi.rs` | 经系统总线和 NetworkManager：Wi‑Fi 开关、附近网络、已保存网络、连接与断开（D105）。带单元测试 |
+| `bluetooth.rs` | 经系统总线和 BlueZ：开关、已配对设备、连接、搜索与配对（D106）。带单元测试 |
+| `sound.rs` | 经 `pactl`：输出和输入设备、音量、静音、默认设备（D107）。带单元测试 |
+| `bus.rs` | 系统总线的小工具：读写属性、调用、合并一连串信号 |
 | `search.rs` | 搜索窗口：应用与外壳动作 |
 | `matching.rs` | 搜索的匹配与排序。纯数据，带单元测试 |
 | `daylight.rs` | Auto 模式：按时刻选纸或墨。带单元测试 |

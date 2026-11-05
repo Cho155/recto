@@ -170,6 +170,9 @@ binds {
     Mod+Space hotkey-overlay-title="Search apps and actions (also Super+D)" { spawn-sh "{{ paths.data }}/bin/recto-shell toggle-search"; }
     Mod+D { spawn-sh "{{ paths.data }}/bin/recto-shell toggle-search"; }
     Mod+A hotkey-overlay-title="Today: notifications, theme, focus" { spawn-sh "{{ paths.data }}/bin/recto-shell toggle-today"; }
+    Mod+N hotkey-overlay-title="Wi‑Fi and network" { spawn-sh "{{ paths.data }}/bin/recto-shell toggle-network"; }
+    Mod+B hotkey-overlay-title="Bluetooth" { spawn-sh "{{ paths.data }}/bin/recto-shell toggle-bluetooth"; }
+    Mod+S hotkey-overlay-title="Sound: volume and devices" { spawn-sh "{{ paths.data }}/bin/recto-shell toggle-sound"; }
     Mod+Shift+T hotkey-overlay-title="Switch between Paper and Ink" { spawn-sh "{{ paths.data }}/bin/recto-theme toggle"; }
     Super+Alt+L hotkey-overlay-title="Lock the screen" { spawn-sh "{{ paths.data }}/bin/recto-theme lock"; }
 

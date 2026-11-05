@@ -39,8 +39,6 @@ pub enum Reading {
 pub struct Outcome {
     pub name: &'static str,
     pub reading: Reading,
-    /// Set for the output device, so the bar can show "Muted".
-    pub output_muted: Option<bool>,
 }
 
 async fn run(argv: &[&str]) -> Option<String> {
@@ -76,10 +74,6 @@ async fn read_volume(device: &str) -> Option<(u32, bool)> {
     parse_wpctl(&run(&["wpctl", "get-volume", device]).await?)
 }
 
-pub async fn read_output_muted() -> Option<bool> {
-    read_volume(SINK).await.map(|(_, muted)| muted)
-}
-
 pub async fn apply(control: Control) -> Outcome {
     match control {
         Control::VolumeUp | Control::VolumeDown | Control::VolumeMute => {
@@ -92,11 +86,7 @@ pub async fn apply(control: Control) -> Outcome {
                 (Some(_), Some((percent, muted))) => Reading::Level { percent, muted },
                 _ => Reading::Unavailable("No audio device"),
             };
-            let output_muted = match reading {
-                Reading::Level { muted, .. } => Some(muted),
-                _ => None,
-            };
-            Outcome { name: "Volume", reading, output_muted }
+            Outcome { name: "Volume", reading }
         }
         Control::MicMute => {
             let ok = run(&["wpctl", "set-mute", SOURCE, "toggle"]).await;
@@ -104,7 +94,7 @@ pub async fn apply(control: Control) -> Outcome {
                 (Some(_), Some((percent, muted))) => Reading::Level { percent, muted },
                 _ => Reading::Unavailable("No microphone"),
             };
-            Outcome { name: "Microphone", reading, output_muted: None }
+            Outcome { name: "Microphone", reading }
         }
         Control::BrightnessUp | Control::BrightnessDown => {
             let step = if control == Control::BrightnessUp { "5%+" } else { "5%-" };
@@ -114,7 +104,7 @@ pub async fn apply(control: Control) -> Outcome {
                 (Some(_), Some(percent)) => Reading::Level { percent, muted: false },
                 _ => Reading::Unavailable("Brightness can’t be changed here"),
             };
-            Outcome { name: "Brightness", reading, output_muted: None }
+            Outcome { name: "Brightness", reading }
         }
     }
 }

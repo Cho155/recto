@@ -1,5 +1,7 @@
-//! System status the bar may mention: battery, network, sound. Plain data.
-//! The bar keeps a quiet battery figure; the rest is said only when it needs attention.
+//! System status the bar may mention: battery, network, Bluetooth, sound. Plain data.
+//! The bar keeps quiet marks for these; words appear only when something needs attention.
+
+use crate::glyph::Glyph;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Battery {
@@ -19,11 +21,88 @@ pub struct Status {
     pub network_name: Option<String>,
     /// Connected by cable: say so, rather than the connection's generated name.
     pub network_wired: bool,
-    /// `None` until the default output has been read once.
-    pub muted: Option<bool>,
     /// Something is recording from a microphone. `None` without pactl.
     pub mic_in_use: Option<bool>,
+    /// `None` without NetworkManager or a Wi‑Fi device.
+    pub wifi: Option<crate::wifi::Summary>,
+    /// `None` without BlueZ or an adapter.
+    pub bluetooth: Option<BluetoothState>,
+    /// The default output. `None` until read, or without a sound server.
+    pub volume: Option<Volume>,
 }
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct BluetoothState {
+    pub powered: bool,
+    /// Names of connected devices.
+    pub connected: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Volume {
+    pub percent: u32,
+    pub muted: bool,
+}
+
+/// How a mark on the bar is set: off (faint), quiet (secondary), active (text).
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Tone {
+    Off,
+    Quiet,
+    Active,
+}
+
+/// One of the bar's small marks: what to draw, how strongly, and what it means.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Mark {
+    pub glyph: Glyph,
+    pub tone: Tone,
+    /// Tooltip and screen reader: "Wi‑Fi: Home".
+    pub spoken: String,
+}
+
+pub fn network_mark(status: &Status) -> Option<Mark> {
+    let cable = status.network_wired && status.online == Some(true);
+    let mark = |glyph, tone, spoken: &str| Some(Mark { glyph, tone, spoken: spoken.to_owned() });
+    match &status.wifi {
+        Some(w) if !w.enabled && cable => mark(Glyph::Wired { off: false }, Tone::Quiet, "Connected by cable; Wi‑Fi is off"),
+        Some(w) if !w.enabled => mark(Glyph::Wifi { level: 0, off: true }, Tone::Off, "Wi‑Fi is off"),
+        Some(w) => match &w.ssid {
+            Some(ssid) => mark(Glyph::Wifi { level: crate::wifi::level(w.strength), off: false }, Tone::Quiet, &format!("Wi‑Fi: {ssid}")),
+            None if cable => mark(Glyph::Wired { off: false }, Tone::Quiet, "Connected by cable"),
+            None => mark(Glyph::Wifi { level: 0, off: false }, Tone::Quiet, "Wi‑Fi: not connected"),
+        },
+        None if cable => mark(Glyph::Wired { off: false }, Tone::Quiet, "Connected by cable"),
+        None if status.online.is_some() => mark(Glyph::Wired { off: true }, Tone::Off, "Not connected"),
+        None => None,
+    }
+}
+
+pub fn bluetooth_mark(status: &Status) -> Option<Mark> {
+    let bt = status.bluetooth.as_ref()?;
+    let (tone, spoken) = if !bt.powered {
+        (Tone::Off, "Bluetooth is off".to_owned())
+    } else if bt.connected.is_empty() {
+        (Tone::Quiet, "Bluetooth is on".to_owned())
+    } else {
+        (Tone::Active, format!("Bluetooth: {}", bt.connected.join(", ")))
+    };
+    Some(Mark { glyph: Glyph::Bluetooth { off: !bt.powered }, tone, spoken })
+}
+
+pub fn sound_mark(status: &Status) -> Option<Mark> {
+    let v = status.volume.as_ref()?;
+    if v.muted {
+        return Some(Mark { glyph: Glyph::Speaker { waves: 0, muted: true }, tone: Tone::Quiet, spoken: "Sound is muted".into() });
+    }
+    let waves = match v.percent {
+        0 => 0,
+        1..50 => 1,
+        _ => 2,
+    };
+    Some(Mark { glyph: Glyph::Speaker { waves, muted: false }, tone: Tone::Quiet, spoken: format!("Volume {}%", v.percent) })
+}
+
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Alert {
@@ -97,9 +176,6 @@ pub fn alerts(status: &Status) -> Vec<Alert> {
     if status.online == Some(false) {
         out.push(Alert { text: "Offline".into(), urgent: false });
     }
-    if status.muted == Some(true) {
-        out.push(Alert { text: "Muted".into(), urgent: false });
-    }
     if status.mic_in_use == Some(true) {
         out.push(Alert { text: "Mic in use".into(), urgent: false });
     }
@@ -148,7 +224,7 @@ mod tests {
     #[test]
     fn quiet_when_all_is_well() {
         assert!(alerts(&battery(80.0, false, Some(18_000))).is_empty());
-        assert!(alerts(&Status { online: Some(true), muted: Some(false), ..Status::default() }).is_empty());
+        assert!(alerts(&Status { online: Some(true), ..Status::default() }).is_empty());
     }
 
     #[test]
@@ -177,17 +253,41 @@ mod tests {
     }
 
     #[test]
-    fn order_is_offline_muted() {
-        let status = Status { online: Some(false), muted: Some(true), ..battery(5.0, false, None) };
+    fn offline_then_microphone() {
+        let status = Status { online: Some(false), mic_in_use: Some(true), ..battery(5.0, false, None) };
         let texts: Vec<String> = alerts(&status).into_iter().map(|a| a.text).collect();
-        assert_eq!(texts, vec!["Offline", "Muted"]);
+        assert_eq!(texts, vec!["Offline", "Mic in use"]);
     }
 
     #[test]
-    fn microphone_in_use_is_mentioned_last() {
-        let status = Status { muted: Some(true), mic_in_use: Some(true), ..Status::default() };
-        let texts: Vec<String> = alerts(&status).into_iter().map(|a| a.text).collect();
-        assert_eq!(texts, vec!["Muted", "Mic in use"]);
+    fn network_mark_follows_wifi_and_cable() {
+        use crate::wifi::Summary;
+        let wifi = |enabled, ssid: Option<&str>, strength| Some(Summary { enabled, ssid: ssid.map(Into::into), strength });
+        let on = Status { online: Some(true), wifi: wifi(true, Some("Home"), 80), ..Status::default() };
+        let m = network_mark(&on).unwrap();
+        assert_eq!((m.glyph, m.tone, m.spoken.as_str()), (Glyph::Wifi { level: 3, off: false }, Tone::Quiet, "Wi‑Fi: Home"));
+        let off = Status { online: Some(false), wifi: wifi(false, None, 0), ..Status::default() };
+        assert_eq!(network_mark(&off).unwrap().tone, Tone::Off);
+        let cable = Status { online: Some(true), network_wired: true, wifi: wifi(true, None, 0), ..Status::default() };
+        assert_eq!(network_mark(&cable).unwrap().glyph, Glyph::Wired { off: false });
+        assert!(network_mark(&Status::default()).is_none());
+    }
+
+    #[test]
+    fn bluetooth_and_sound_marks() {
+        let bt = |powered, connected: &[&str]| Status {
+            bluetooth: Some(BluetoothState { powered, connected: connected.iter().map(|s| s.to_string()).collect() }),
+            ..Status::default()
+        };
+        assert_eq!(bluetooth_mark(&bt(false, &[])).unwrap().glyph, Glyph::Bluetooth { off: true });
+        let m = bluetooth_mark(&bt(true, &["WH-1000XM4"])).unwrap();
+        assert_eq!((m.tone, m.spoken.as_str()), (Tone::Active, "Bluetooth: WH-1000XM4"));
+        assert!(bluetooth_mark(&Status::default()).is_none());
+
+        let vol = |percent, muted| Status { volume: Some(Volume { percent, muted }), ..Status::default() };
+        assert_eq!(sound_mark(&vol(45, false)).unwrap().glyph, Glyph::Speaker { waves: 1, muted: false });
+        assert_eq!(sound_mark(&vol(80, false)).unwrap().spoken, "Volume 80%");
+        assert_eq!(sound_mark(&vol(80, true)).unwrap().glyph, Glyph::Speaker { waves: 0, muted: true });
     }
 
     #[test]

@@ -1,6 +1,6 @@
 # 项目状态
 
-更新：2026-11-05（第四天：作者换上 Recto 后的反馈；第二轮修了自动弹终端，电量常驻，快捷键说明补全）。项目已改名 **Recto**（原名“留白／Liubai”，D94），目录是 `~/Projects/recto`。阶段 0–3 完成，阶段 4 大部分完成。第一版（D86）还差：真机验证完整一轮、英文 README；许可证 MIT（D90）、安装脚本已完成。
+更新：2026-11-05（第四天：作者换上 Recto 后的反馈；第二轮修了自动弹终端，电量常驻，快捷键说明补全；第三轮做了 Wi‑Fi、蓝牙、声音的常驻标记和列表，fcitx5 候选框主题，更暖的纸色）。项目已改名 **Recto**（原名“留白／Liubai”，D94），目录是 `~/Projects/recto`。阶段 0–3 完成，阶段 4 大部分完成。第一版（D86）还差：真机验证完整一轮、英文 README；许可证 MIT（D90）、安装脚本已完成。
 
 今天的八轮：
 
@@ -34,6 +34,17 @@
 
 作者账户里还没有这些改动，要作者自己运行 `./install.sh`（会重启状态栏、重载 niri，不用重新登录）。
 
+2026-11-05 第三轮（作者：Wi‑Fi、蓝牙、声音要做，尽量常驻或有快捷键；输入法框加上 Recto；试更暖的纸色）：
+
+1. **Wi‑Fi、蓝牙、声音**（D104–D107）：状态栏右边三个常驻的细线标记，点一下或按 Super+N／Super+B／Super+S 打开文字列表。Wi‑Fi 能开关、连接（含输密码）、断开；蓝牙能开关、连接、搜索、配对；声音能调音量、静音、换输出和输入设备。“Muted” 文字提示去掉了（扬声器标记画叉）。新模块 `panels.rs`、`wifi.rs`、`bluetooth.rs`、`sound.rs`、`bus.rs`；58 个单元测试通过，编译无警告。
+   - 测试机里修掉的问题：打开 Wi‑Fi 列表时外壳崩溃（读已保存连接时用错了数据格式）；列表还在加载时键盘落在 “Network settings…” 上，Enter 打开了设置工具；密码框消失后键盘丢失；蓝牙配对后列表重新排序，点击落到别的设备上；关闭状态在 Ink 下看不出来（加了斜线）。
+   - 验证方式：Wi‑Fi 用内核的虚拟网卡加 hostapd、dnsmasq（只在测试机里）；声音用一个模拟的第二输出；蓝牙用假的 BlueZ（测试机没有可用的蓝牙硬件）。**作者在测试中途要求：网络相关的事不要擅自处理，做完告诉作者，由作者验证**（记进了记忆）。之后没有再在测试机里做网络操作；真机上的 Wi‑Fi 和蓝牙等作者验证。
+   - 这一轮在测试机里下载过的包（作者叫停之前）：hostapd、iw、bluez-utils、dnsmasq，共约 3 MB；bluez 从本机的软件包缓存拷进去。
+2. **fcitx5 候选框**（D108）：`recto-paper`／`recto-ink` 两套主题，衬线候选，当前候选用陶土色浅底；跟着系统明暗自动换，测试机里用 fcitx5 自带的 Unicode 输入（Ctrl+Alt+Shift+U）看过两种主题。安装时会让 fcitx5 重读外观。
+3. **更暖的纸色**（D109）：Paper 底色 `#FAF9F5`→`#F7F2E7` 等，对比度全部重算；换回去的方法写在 D109。已开的终端要重新登录后才换上新纸色。
+
+截图：`docs/screenshots/2026-11-05-vm-wifi-*.png`、`…-bluetooth-*.png`、`…-sound-*.png`、`…-fcitx5-*.png`、`…-paper-before-today.png` 与 `…-paper-warm-today.png`（同一页的前后对比）。
+
 全部在测试虚拟机中验证过。助手没有在作者账户里安装或运行 Recto（见“没做”里第一天的一处例外）；作者什么时候切换，由作者决定。测试机已关机。
 
 ## 现在能用的
@@ -42,21 +53,21 @@
 | --- | --- | --- |
 | 设计 | 理念（含“古典，而不是 Windows”）、设计语言、令牌、样张（9 张画板，已同步为古典风格，含锁屏扉页和图版位置） | `docs/VISION.md`、`docs/DESIGN-LANGUAGE.md`、`design/` |
 | 主题系统 | 一份令牌生成 niri、foot、GTK 3/4、GtkSourceView、Qt 6（qt6ct）、mako、fuzzel、kitty、alacritty、外壳的配置；Paper／Ink／Auto 实时切换；壁纸默认是 Hammershøi 的一幅油画（也可以是等高线或任一张图版（线稿按主题上色；素描、油画保留原色，Paper 下叠底印在纸上；可铺满；配图版说明）），带纸纹；锁屏是扉页 | `docs/THEMES.md`、`design/plates/README.md` |
-| 外壳 `recto-shell` | 状态栏（页眉：衬线、罗马数字工作区、斜体日期、旧体数字时钟）、今日页（整页；正在播放）、通知（页边纸条，陶土色红字标注）、音量／麦克风／亮度提示、专注模式、搜索（索引）、托盘（可用键盘） | `docs/INTERACTION.md`、`docs/ARCHITECTURE.md` |
+| 外壳 `recto-shell` | 状态栏（页眉：衬线、罗马数字工作区、斜体日期、旧体数字时钟）、今日页（整页；正在播放）、通知（页边纸条，陶土色红字标注）、音量／麦克风／亮度提示、专注模式、搜索（索引）、托盘（可用键盘）、网络／蓝牙／声音的常驻标记和列表（D104） | `docs/INTERACTION.md`、`docs/ARCHITECTURE.md` |
 | 动效 | 面板从来处进出、只移动 6 px；通知原地放下、其他纸条平滑让位；开窗像一张纸落到桌上（niri 着色器） | `docs/DESIGN-LANGUAGE.md` 动效一节 |
 | 材质与排版 | Source Serif 4 为主：小型大写、旧体数字、光学尺寸；小圆角（6／3／2）；1 px 陶土焦点线（窗口和按钮一致）；当前窗口阴影略深；自绘细线图标；纸条样式的提示气泡 | D55–D58、D63–D67、D74、D80 |
-| 应用 | GTK 3/4 配色与衬线窗口标题；文本编辑器正文区的 `recto` 配色；Qt 6 配色；GNOME 文档字体为衬线；fastfetch（陶土色 Arch 图标） | `docs/THEMES.md`、D75、D77、D83、D100 |
+| 应用 | GTK 3/4 配色与衬线窗口标题；文本编辑器正文区的 `recto` 配色；Qt 6 配色；GNOME 文档字体为衬线；fastfetch（陶土色 Arch 图标）；fcitx5 候选框（D108） | `docs/THEMES.md`、D75、D77、D83、D100 |
 | 字体 | 终端 Monaspace Xenon 10 pt、行高 14.25 pt；中文回退到 Noto CJK SC（衬线、无衬线、等宽各配一款），对外壳、GTK、Qt、终端、浏览器都有效 | `docs/DESIGN-LANGUAGE.md` 字体一节、D98、D99 |
 | 会话 | swayidle 空闲锁屏、polkit-gnome 授权弹窗、foot 服务进程 | `templates/niri/config.kdl` |
 | 安装与测试 | `./install.sh`（依赖检查、编译、预览、安装、`--uninstall`；从别的桌面第一次切过来时提示重新登录）；真机验证清单；`tools/collect-report` 一条命令收集机器信息、内存和两种渲染器的帧率 | `docs/TESTING.md`、`docs/THEMES.md`、D88、D89 |
 
-- **测试**：48 个单元测试通过，编译无警告。
+- **测试**：58 个单元测试通过，编译无警告。
 - **托管**：GitHub 私有仓库 https://github.com/Cho155/recto（2026-11-03 建，D97）；推送前先问作者。
 - **提交**：作者 2026-11-03 同意随时提交。历史从 `c6361a8` 开始，在 master 上；提交身份只设在本仓库（名字 Tibo，GitHub 隐私邮箱 `269170125+Cho155@users.noreply.github.com`；2026-11-03 推送前把全部历史从作者的私人邮箱改成了它，见 D97）。
 - **外壳内存**：空闲约 24 MiB PSS（RSS 41–51 MiB，视会话里用过的东西而定）；整页今日页打开时多约 17 MiB，关闭后释放；反复开关不增长（D61）。
 - **整个桌面空闲**：166–174 MiB，预算 400 MiB（`reports/memory/2026-11-03-vm-polish/`）。
 - **动效帧率**：通知、音量提示满帧（75 Hz）；搜索的第一帧晚一两帧；整页今日页刚出现时有几帧热身（中位数 15–23 ms，见 D87），真机上用 `collect-report` 比较 cairo 和 gl（`reports/motion/2026-11-03-vm/`）。
-- **截图**：`docs/screenshots/`，47 张（2026-11-05 新增 5 张：终端问题修改前后、电量两种主题、快捷键列表）。2026-11-04 新增：`2026-11-04-vm-fastfetch-paper.png`、`…-fastfetch-ink.png`、`…-terminal-fonts.png`（五款终端字体的对比，Chinese 一行是改之前的回退）、`…-cjk-notification.png`（中文通知）。改名后的默认桌面（Hammershøi）见 `2026-11-03-vm-recto-default-paper.png`、`…-ink.png`；古典风格见 `2026-11-03-vm-classical-*.png`，另有 `…-today-now-playing.png`、`…-text-editor-*.png`、`…-qt6ct.png`、`…-plate-test-drawing.png`（叶子是测试用的线稿，不随项目分发）、`…-lock-title-page.png`。
+- **截图**：`docs/screenshots/`，61 张（2026-11-05 第二轮 5 张：终端问题修改前后、电量两种主题、快捷键列表；第三轮 14 张：Wi‑Fi、蓝牙、声音、fcitx5、纸色前后）。2026-11-04 新增：`2026-11-04-vm-fastfetch-paper.png`、`…-fastfetch-ink.png`、`…-terminal-fonts.png`（五款终端字体的对比，Chinese 一行是改之前的回退）、`…-cjk-notification.png`（中文通知）。改名后的默认桌面（Hammershøi）见 `2026-11-03-vm-recto-default-paper.png`、`…-ink.png`；古典风格见 `2026-11-03-vm-classical-*.png`，另有 `…-today-now-playing.png`、`…-text-editor-*.png`、`…-qt6ct.png`、`…-plate-test-drawing.png`（叶子是测试用的线稿，不随项目分发）、`…-lock-title-page.png`。
 - **样张画布**：https://claude.ai/artifact/LsCAAp3mUTsEYSnUoPumiz（私有；第 13 版；源文件在 `design/specimen/project/`）。
 
 ## 真机第一轮（2026-11-03 傍晚，ThinkPad X230，test 账户）
@@ -68,6 +79,10 @@
 - 这轮的日志是助手在作者要求“看日志”后，从系统日志里只读 test（UID 1001）本次开机的记录得到的。
 
 ## 没做 / 已知问题
+
+- **2026-11-05 第三轮的 Wi‑Fi、蓝牙没有在真机上测过**，等作者验证。蓝牙只用假的 BlueZ 测过界面；不注册配对代理，要输配对码的设备（键盘）配不了。Wi‑Fi 的企业网络和 WEP 只能用 “Network settings…”（需要 nm-connection-editor，作者机器上有没有没查）。
+- 列表重画时，如果键盘所在的那一行消失了（比如 “Find new devices” 变成 “Searching…”），键盘不会自动落到别处，要按 Tab。
+- 更暖的纸色只在测试机里看过，真机屏幕上的效果等作者看；样张画布里还是旧纸色。
 
 - 2026-11-04 的三项只在测试机里看过（1440×900，缩放 1；fastfetch 的图标另在缩放 2 下试过），没在真机上看过。
 - fastfetch 的图标按登录时的屏幕缩放画：几块屏幕缩放不同时，按最大的画；在 foot 里用 Ctrl+减号缩小字号后，图会比留给它的 26×12 格大，盖住右边一点文字（放大没有问题）。kitty 不支持 sixel，图标位置会是空白（没测过）；Linux 控制台里是空白（测过，不出乱码）。
@@ -99,7 +114,7 @@
 - polkit-gnome 常驻约 11–17 MiB，是可以优化的大头。
 - 所有测量都在虚拟机（virgl 显卡）里完成；在真机上要重新测量。
 
-## 测试机现状（`~/VMs/liubai-arch/`，2026-11-05 第二轮结束时已关机）
+## 测试机现状（`~/VMs/liubai-arch/`，2026-11-05 第三轮结束时已关机）
 
 - 启动：`./start.sh`；执行命令：`./vm '<命令>'`；同步项目：`./sync.sh`（不覆盖测试机里的 `build/` 和 `shell/target/`）。
 - 已安装：niri 26.04 一套、Rust 工具链、PipeWire、UPower、NetworkManager（取代了 systemd-networkd）、fcitx5（配置了 us 和 de 两种键盘布局）、nm-applet、ydotool、swayidle、polkit-gnome。2026-11-03 新增：imagemagick（拼慢放截图）、python-fonttools（查字体的 OpenType 特性）、qt6ct（测 Qt 主题）、python-gobject（跑假播放器）。
@@ -113,6 +128,7 @@
   - `~/bin/insession` 让 SSH 命令带上会话环境；
   - `~/.config/niri/local.kdl` 关掉了指针加速和热角；
   - arch 用户加入了 wheel 组，用于测授权弹窗。
+- 2026-11-05 第三轮：装的是 D104–D109 之后的版本，模式改回 Auto。新装 hostapd、iw、bluez、bluez-utils、dnsmasq。`~/wifi-test.sh` 建三个虚拟 Wi‑Fi 网卡和两个测试网络（重启后消失）；NetworkManager 里留着测试时保存的 “Harbour Café” 连接。`~/fake-bluez.py`（源文件在 `~/VMs/liubai-arch/fake-bluez.py`）是假的 BlueZ：先 `sudo systemctl stop bluetooth`，再用 root 运行。`~/shell-debug.sh` 在 niri 会话里重启外壳并打开 `RECTO_DEBUG`（从 SSH 直接启动的外壳不在登录会话里，NetworkManager 会拒绝它）。测试中误开的 nm-connection-editor 窗口里有一串测试文字，按作者的要求没有去动它；重启测试机后就没了。
 - 2026-11-05 第二轮：装的是 D101–D103 之后的版本，模式 Auto。`~/fake-upower.py`（源文件在 `~/VMs/liubai-arch/fake-upower.py`）是假的电池；`~/battery-test.sh` 起一个私有总线当系统总线、启动假电池、用它重启外壳，之后改 `/tmp/battery.json`（`{"percent": 15, "state": 2, "left": 1500}`，state 1 充电、2 放电、4 充满）就能换状态；截图在 `~/battery/`。用完要正常重启外壳或会话，否则外壳连不到 NetworkManager。
 - 测试用的文件：
   - `~/fake-mpris.py`（假播放器，源文件在 `~/VMs/liubai-arch/fake-mpris.py`；用 `~/bin/insession python3 ~/fake-mpris.py &` 启动）；
@@ -125,7 +141,7 @@
 
 ## 下一步
 
-1. **作者**（2026-11-05 起已在自己的账户里日常使用）：运行一次 `cd ~/Projects/recto && ./install.sh` 用上第二轮的修改（终端、电量、快捷键说明）；把觉得不对的小细节告诉助手。更新：`cd ~/Projects/recto && ./install.sh`；当初的切换说明：`./install.sh`，然后注销重新登录；换回原来：`./install.sh --uninstall`，再重新登录。这次安装会先问要不要装 `otf-monaspace`（终端字体，下载约 23 MB）；`noto-fonts-cjk` 和 `fastfetch` 这台机器上已经有了。原来 matugen 生成的 `~/.config/fastfetch/config.jsonc` 会改名备份，卸载时放回。用一段时间，告诉助手哪里质感不够。
+1. **作者**（2026-11-05 起已在自己的账户里日常使用）：运行一次 `cd ~/Projects/recto && ./install.sh` 用上第二、三轮的修改（终端、电量、快捷键说明；Wi‑Fi、蓝牙、声音；输入法候选框；更暖的纸色），然后**验证 Wi‑Fi 和蓝牙**（作者要求由作者来验证网络相关的部分）；把觉得不对的小细节告诉助手。更新：`cd ~/Projects/recto && ./install.sh`；当初的切换说明：`./install.sh`，然后注销重新登录；换回原来：`./install.sh --uninstall`，再重新登录。这次安装会先问要不要装 `otf-monaspace`（终端字体，下载约 23 MB）；`noto-fonts-cjk` 和 `fastfetch` 这台机器上已经有了。原来 matugen 生成的 `~/.config/fastfetch/config.jsonc` 会改名备份，卸载时放回。用一段时间，告诉助手哪里质感不够。
 2. ~~快捷键容易被发现~~：2026-11-05 第二轮按作者的选择做完（niri 自带的列表 + README 表，D103）。页眉上点开搜索的入口作者没要，不做。
 3. **助手**：下一阶段的主线（作者 2026-11-03 定）是在使用中持续提升质感，并尽量适配更多应用；按作者的使用反馈调整（先在测试机里复现和改，作者重新运行 `./install.sh` 就会更新）。
 4. 要讨论：终端要不要换成或允许选 kitty（作者 2026-11-05 提起，之后再研究；要先量 kitty 的内存，并处理主题切换和 sixel 图标）；默认主题用 Auto 还是 Paper；纸色在真机上的亮度（作者第一轮觉得刺眼，当时没有壁纸）。终端字体已定（D98），作者用了觉得不合适再换。
