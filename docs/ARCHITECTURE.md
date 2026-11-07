@@ -9,7 +9,7 @@
 | 终端 | foot（默认），server 模式 | 内存占用低，支持透明；多个窗口共享一个进程；Paper 和 Ink 写在同一个配置里，靠信号切换。kitty、alacritty 也提供主题。 |
 | 壁纸 | 程序生成的等高线 | 按每块屏幕的像素尺寸生成 SVG，转 PNG 后由 swaybg 显示；以后可由外壳自绘。 |
 | 主题导出 | `tools/recto-theme` | 从 `design/tokens.toml` 和 `templates/` 生成 niri、foot、fuzzel、mako、GTK 3/4、GtkSourceView、Qt 6（qt6ct）、kitty、alacritty 和外壳的配置，并负责安装、卸载、切换、壁纸、锁屏。安装的入口是仓库根目录的 `install.sh`。详见 [THEMES.md](THEMES.md)。 |
-| 空闲与锁屏 | swayidle + 主题化的 swaylock | `recto-theme lock` 用当前主题的颜色锁屏；锁屏不自己实现（D41）。 |
+| 空闲与锁屏 | swayidle + 主题化的 swaylock | swayidle 只负责空闲关屏和休眠前锁屏，不空闲锁屏（D110）；`recto-theme lock` 用当前主题的颜色锁屏；锁屏不自己实现（D41）。 |
 | polkit 认证代理 | polkit-gnome | 已安装时由 niri 配置启动（D42）；常驻约 17 MiB。 |
 | 后备组件 | mako、fuzzel | 通知和搜索都已由外壳提供。mako 只在外壳没运行时由 D-Bus 自动启动；fuzzel 的主题仍会生成，但快捷键已改为外壳的搜索。 |
 

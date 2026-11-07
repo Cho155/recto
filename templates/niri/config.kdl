@@ -153,8 +153,9 @@ spawn-at-startup "foot" "--server"
 spawn-sh-at-startup "{{ paths.data }}/bin/recto-theme session-start"
 spawn-sh-at-startup "{{ paths.data }}/bin/recto-shell"
 
-// Lock after a while, then turn the displays off; lock before sleeping.
-spawn-sh-at-startup "command -v swayidle >/dev/null && exec swayidle -w timeout {{ session.lock_after_seconds }} '{{ paths.data }}/bin/recto-theme lock' timeout {{ session.screen_off_after_seconds }} 'niri msg action power-off-monitors' before-sleep '{{ paths.data }}/bin/recto-theme lock'"
+// Turn the displays off after a while (any key or touch wakes them, no password);
+// lock before sleeping. No idle lock: lock by hand with Super+Alt+L (D110).
+spawn-sh-at-startup "command -v swayidle >/dev/null && exec swayidle -w timeout {{ session.screen_off_after_seconds }} 'niri msg action power-off-monitors' before-sleep '{{ paths.data }}/bin/recto-theme lock'"
 
 // Password prompts for administrator actions (a GTK 3 dialog in Recto's colors).
 spawn-sh-at-startup "agent=/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1; [ -x $agent ] && exec $agent"

@@ -178,14 +178,14 @@ elif [[ -n "${NIRI_SOCKET:-}" ]]; then
             busctl --user call org.fcitx.Fcitx5 /controller org.fcitx.Fcitx.Controller1 \
                 ReloadAddonConfig s classicui >/dev/null 2>&1 || true
         fi
-        note "Reloaded. The idle lock and the password dialog start with the next login."
+        note "Reloaded. The screen-off timer and the password dialog follow at the next login."
     fi
 elif systemctl --user -q is-active niri.service 2>/dev/null; then
     # niri reloads its config file by itself, but runs spawn-at-startup only when
     # it starts: a session that was already running gets Recto's look, not its
-    # bar, wallpaper or idle lock.
+    # bar, wallpaper or screen-off timer.
     note "A niri session is already running for this account. It has picked up"
-    note "Recto's colors and keys, but the bar, wallpaper and idle lock start only"
+    note "Recto's colors and keys, but the bar, wallpaper and screen-off timer start only"
     note "when niri starts: log out of it (Super+Shift+E) and log in again."
 else
     note "Log out, then choose \"niri\" in your login screen,"

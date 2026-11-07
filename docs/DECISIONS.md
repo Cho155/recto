@@ -220,6 +220,7 @@
 | D107 | 声音走 `pactl`：列表读输出、输入和默认设备，`pactl subscribe` 的同一个子进程在设备变化时通知外壳（不再多开进程）；状态栏的 “Muted” 提示去掉，扬声器标记画叉代替；滑条原地更新，用手拖过后 0.9 秒内不被读回的值打断 | 和麦克风提示（D37）共用一个子进程，没有新的常驻开销。顺带解决了 D30 的一半：在别的程序里改音量，状态栏标记也会跟着变（音量提示仍然只在按键时弹出）。滑条如果每次读回都重设，拖动时会跳 |
 | D108 | fcitx5 候选框做成 Recto 的两套主题 `recto-paper`、`recto-ink`：纸色底、细线边、Recto 的圆角，候选用衬线 Source Serif 4 12 pt（汉字经 fontconfig 落到 Noto Serif CJK SC），当前候选用选中文字的陶土色底；`classicui.conf` 设 `UseDarkTheme=True`；安装后用 fcitx5 的 `ReloadAddonConfig classicui` 让它重读 | 作者要求“输入法框可以加上 recto”。fcitx5 读门户的明暗设置，recto-theme 切换时本来就会改它，所以不需要额外的切换步骤（测试机里验证过 Paper→Ink 自动跟随）。`fcitx5-remote -r` 只重读输入法，不重读外观，测过不生效。用户以后在 fcitx5 的设置工具里改外观，它会把链接换成普通文件，下次安装时被改名备份 |
 | D109 | Paper 的纸色更暖、略暗：底色 `#FAF9F5`→`#F7F2E7`，桌面 `#F0EEE6`→`#EDE6D7`，细线 `#E3E0D6`→`#DFD7C6`，以及 raised、backdrop、contour、plate_line、quiet、selection、veil 随之调整；次要色 `#6B6A65`→`#6A665E`；陶土文字色 `#B4532E`→`#B0512D`、终端亮黄 `#946B12`→`#8D6611`，把对比度拉回 4.5 以上 | 作者说“更暖的纸色是可以尝试的”，第一轮真机上也觉得纸色刺眼。只走一小步（亮度从 97% 降到 94%，色相从 48° 偏到 41°），全部文字颜色重新算过对比度，都不低于 4.5:1（两个本来就故意偏淡的终端色除外）。要换回去，用提交 `1d56fe0` 里 `design/tokens.toml` 的 `[theme.paper]` 和 `[theme.paper.ansi]` 两节替换现在的即可（`git show 1d56fe0:design/tokens.toml`）。已开的 foot 终端要等重新登录（foot 服务重启）才换上新纸色 |
+| D110 | 去掉空闲自动锁屏：swayidle 只保留空闲 15 分钟关显示器和休眠前锁屏，令牌 `session.lock_after_seconds` 删除；手动锁屏仍是 `Super+Alt+L` | 作者在日常使用里觉得空闲 10 分钟锁屏、再输密码耽误事，离开电脑久的时候会自己手动锁屏。关显示器不要密码就能唤醒，不妨碍使用，所以留着；合盖或休眠前锁屏只在离开时发生，也留着。改回去：在 swayidle 命令里加回 `timeout <秒> '<data>/bin/recto-theme lock'`（D44 的原样）。已登录的会话里 swayidle 是登录时启动的，重新登录后才按新设置运行 |
 
 ## 待定
 

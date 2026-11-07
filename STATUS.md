@@ -49,6 +49,12 @@
 
 全部在测试虚拟机中验证过。助手没有在作者账户里安装或运行 Recto（见“没做”里第一天的一处例外）；作者什么时候切换，由作者决定。测试机已关机。
 
+2026-11-07（作者：空闲自动锁屏耽误日常使用，删掉；离开久了会自己手动锁屏）：
+
+- **去掉空闲锁屏**（D110）：swayidle 不再空闲 10 分钟锁屏，只保留空闲 15 分钟关显示器（按键即醒，不要密码）和合盖／休眠前锁屏；令牌 `session.lock_after_seconds` 删除；手动锁屏仍是 `Super+Alt+L`。安装脚本的提示语同步改了。
+- 测试机里验证：安装后渲染出的 niri 配置通过 `niri validate`；重启会话后 swayidle 的参数只剩 `timeout 900 … power-off-monitors` 和 `before-sleep … lock`。没有等满时间实测（没有锁屏命令可触发，按逻辑成立）。测试机已关机。
+- 作者账户里还没有这个改动：要作者自己运行 `./install.sh`，并**重新登录一次**（swayidle 是登录时启动的，热重载不会换掉它）；想立刻生效也可以先 `pkill -x swayidle`，代价是这次登录里不再自动关屏。
+
 ## 现在能用的
 
 | 部分 | 内容 | 文档 |
@@ -60,7 +66,7 @@
 | 材质与排版 | Source Serif 4 为主：小型大写、旧体数字、光学尺寸；小圆角（6／3／2）；1 px 陶土焦点线（窗口和按钮一致）；当前窗口阴影略深；自绘细线图标；纸条样式的提示气泡 | D55–D58、D63–D67、D74、D80 |
 | 应用 | GTK 3/4 配色与衬线窗口标题；文本编辑器正文区的 `recto` 配色；Qt 6 配色；GNOME 文档字体为衬线；fastfetch（陶土色 Arch 图标）；fcitx5 候选框（D108） | `docs/THEMES.md`、D75、D77、D83、D100 |
 | 字体 | 终端 Monaspace Xenon 10 pt、行高 14.25 pt；中文回退到 Noto CJK SC（衬线、无衬线、等宽各配一款），对外壳、GTK、Qt、终端、浏览器都有效 | `docs/DESIGN-LANGUAGE.md` 字体一节、D98、D99 |
-| 会话 | swayidle 空闲锁屏、polkit-gnome 授权弹窗、foot 服务进程 | `templates/niri/config.kdl` |
+| 会话 | swayidle 空闲关屏与休眠前锁屏（不空闲锁屏，D110）、polkit-gnome 授权弹窗、foot 服务进程 | `templates/niri/config.kdl` |
 | 安装与测试 | `./install.sh`（依赖检查、编译、预览、安装、`--uninstall`；从别的桌面第一次切过来时提示重新登录）；真机验证清单；`tools/collect-report` 一条命令收集机器信息、内存和两种渲染器的帧率 | `docs/TESTING.md`、`docs/THEMES.md`、D88、D89 |
 
 - **测试**：58 个单元测试通过，编译无警告。
@@ -137,7 +143,7 @@
   - `~/Documents/recto-sample.md`（编辑器配色样例）；
   - `~/Documents/monday-notes.md` 里有一行误打进去的 “arch”。
 - 每次开机后，要模拟点击需先启动 `sudo ydotoold -p /tmp/.ydotool_socket -P 0666`。
-- 测试期间要手动停掉 swayidle（`pkill -x swayidle`），否则 10 分钟后锁屏，截图全是锁屏画面。锁屏后可以用 `niri msg action quit --skip-confirmation` 重启会话来解除（自动登录会重新进入）。
+- 测试期间要手动停掉 swayidle（`pkill -x swayidle`），否则 15 分钟后关显示器（2026-11-07 前是 10 分钟后锁屏）。锁屏后可以用 `niri msg action quit --skip-confirmation` 重启会话来解除（自动登录会重新进入）。
 - 慢放：外壳用 `GTK_SLOWDOWN=8` 启动；niri 在 `local.kdl` 里临时加 `animations { slowdown 10.0 }`，用完删掉。
 - 用 `pkill -f` 时注意：`./vm` 的整条命令也会被匹配到，会把自己结束掉；用 `pkill -x <进程名>`。
 

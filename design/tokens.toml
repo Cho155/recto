@@ -221,5 +221,5 @@ ink_from   = "19:00"
 
 # ── Session ───────────────────────────────
 [session]
-lock_after_seconds       = 600   # idle time before the screen locks
+# No idle lock (D110): the screen locks by hand (Super+Alt+L) and before sleep.
 screen_off_after_seconds = 900   # idle time before the displays turn off
