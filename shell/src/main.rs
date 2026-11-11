@@ -15,6 +15,7 @@
 
 mod bar;
 mod clock;
+mod contents;
 mod controls;
 mod daylight;
 mod dbusmenu;

@@ -72,6 +72,16 @@ pub fn roman(n: u64) -> String {
     out
 }
 
+pub const UNTITLED_WINDOW: &str = "Untitled window";
+
+/// A chapter heading on the Contents page: "II · Reading", or "II" for a workspace without a name.
+pub fn chapter_heading(numeral: &str, name: Option<&str>) -> String {
+    match name {
+        Some(name) => format!("{numeral} · {name}"),
+        None => numeral.to_owned(),
+    }
+}
+
 /// The name shown in the bar: the workspace's own name, or its number as a chapter numeral.
 pub fn workspace_label(ws: &Workspace) -> String {
     ws.name.clone().unwrap_or_else(|| roman(ws.idx))

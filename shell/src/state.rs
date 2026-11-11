@@ -27,6 +27,8 @@ pub struct Window {
     pub is_floating: bool,
     /// 1-based column in the scrolling layout, if tiled.
     pub column: Option<u64>,
+    /// 1-based position within that column, top to bottom.
+    pub row: Option<u64>,
     /// Tile width in logical pixels.
     pub tile_width: f64,
     /// Tile x position relative to the visible view, when niri reports it.
@@ -71,11 +73,9 @@ fn pair(v: Option<&Value>) -> Option<(f64, f64)> {
 }
 
 fn apply_layout(w: &mut Window, layout: &Value) {
-    w.column = layout
-        .get("pos_in_scrolling_layout")
-        .and_then(Value::as_array)
-        .and_then(|a| a.first())
-        .and_then(Value::as_u64);
+    let pos = layout.get("pos_in_scrolling_layout").and_then(Value::as_array);
+    w.column = pos.and_then(|a| a.first()).and_then(Value::as_u64);
+    w.row = pos.and_then(|a| a.get(1)).and_then(Value::as_u64);
     if let Some((width, _)) = pair(layout.get("tile_size")) {
         w.tile_width = width;
     }
@@ -91,6 +91,7 @@ fn parse_window(v: &Value) -> Option<Window> {
         is_focused: v.get("is_focused").and_then(Value::as_bool).unwrap_or(false),
         is_floating: v.get("is_floating").and_then(Value::as_bool).unwrap_or(false),
         column: None,
+        row: None,
         tile_width: 0.0,
         view_x: None,
     };
