@@ -1,99 +1,141 @@
 # Recto
 
-**一套像纸一样安静的 Linux 桌面。**
+**A Linux desktop as quiet as paper.**
 
-Recto 是一套开源的 Wayland 桌面方案：以 niri 为合成器，配一个自研的轻量外壳（状态栏、通知、搜索、今日页、锁屏），以及一份覆盖常用应用的统一主题。
+English · [中文](README.zh-CN.md)
 
-## 它想成为什么
+<p>
+  <img src="docs/screenshots/2026-11-03-vm-recto-default-ink.png" alt="Ink: the bar and the default wallpaper, Hammershøi's Interior in Strandgade" width="49%">
+  <img src="docs/screenshots/2026-11-05-vm-paper-warm-today.png" alt="Paper: the Today page" width="49%">
+</p>
 
-- **温暖、克制**：暖白的纸色与暖黑色，只有一个强调色（陶土橙）。审美上借鉴 Anthropic 的简约风格，但不使用其品牌标识与商业字体。
-- **不是极客风**：不堆图标、不放实时曲线、不用霓虹配色。文字优先，平时安静，有事才提醒。
-- **保留质感**：透明终端、柔和阴影、细线条，这些让桌面好看的东西都留下，但当作材质来用，而不是特效。
-- **省内存**：整个外壳一个进程，面板按需创建、关闭即释放；所有内存数字都附测量方法，不只说“很轻”。
+Recto is an open-source Wayland desktop: [niri](https://github.com/YaLTeR/niri) as the compositor, a small shell of its
+own (bar, notifications, search, a Today page, lock screen) and one theme across everyday apps.
 
-界面语言默认英文；其他语言的渲染单独支持。
+## What it wants to be
 
-## 现在的状态
+- **Warm and restrained**: warm white paper and warm black, one accent colour (clay). The look borrows from
+  Anthropic's simple style, without its logo, name or commercial fonts.
+- **Not geeky**: no walls of icons, no live graphs, no neon. Text first; quiet most of the time, it speaks up only
+  when something needs you.
+- **Texture kept**: translucent terminals, soft shadows, hairlines: the things that make a desktop pleasant stay, used
+  as material rather than as effects.
+- **Light on memory**: the whole shell is one process; panels are created on demand and freed when closed. Every
+  memory figure comes with how it was measured, not just "lightweight".
 
-阶段 0–3 完成，阶段 4 大部分完成，第二天做了动效、材质与排版的打磨；全部在测试虚拟机中验证过：
-- 主题系统可以生成、安装、实时切换 Paper 和 Ink，也可以按时刻自动切换。
-- 外壳 `recto-shell` 提供：
-  - 状态栏、今日页（含正在播放）、搜索；
-  - 通知、音量和亮度提示、专注模式；
-  - 托盘、输入法指示、麦克风使用提示。
+The interface is in English; rendering of other languages is handled separately.
 
-  空闲时约 25 MiB PSS（51 MiB RSS）；整个桌面空闲约 174 MiB（PSS，含音频服务和授权代理）。
-- 风格是古典的书页，不是浮动卡片：衬线正文、小型大写的页眉、旧体数字、陶土色的红字标注；今日页是一整页纸，锁屏是扉页；壁纸可以换成你自己的线条画（图版）。
+## Where it stands
 
-截图见 [docs/screenshots/](docs/screenshots/)，详见 [STATUS.md](STATUS.md)。
+Phases 0–3 are done and most of phase 4; a second day went into motion, material and typography. All of it was
+verified in a test virtual machine:
 
-## 换成 Recto，或换回原来的桌面
+- The theme system generates, installs and switches Paper and Ink live, or switches by time of day (Auto).
+- The shell, `recto-shell`, provides:
+  - the bar, the Today page (with Now playing) and search;
+  - notifications, volume and brightness indicators, focus mode;
+  - the tray, an input-method indicator and a microphone-in-use notice;
+  - Wi‑Fi, Bluetooth and sound marks that stay in the bar, each opening a short list.
 
-切换由你自己做，脚本不会自动替你换：
+  Idle, the shell takes about 25 MiB PSS (51 MiB RSS); the whole desktop idles at about 174 MiB (PSS, including the
+  audio service and the polkit agent).
+- The style is a classical book page, not floating cards: serif text, small-capital running heads, old-style
+  figures, clay rubrics; the Today page is one whole page, the lock screen a title page; the wallpaper can be your
+  own line drawing (a "plate").
+
+The author has used Recto as their daily desktop since November 2026; the formal real-hardware checklist
+([docs/TESTING.md](docs/TESTING.md)) has not been completed in full yet.
+
+Screenshots are in [docs/screenshots/](docs/screenshots/); details in [STATUS.md](STATUS.md).
+The project documents are in Chinese; the interface, code comments and tokens are in English.
+
+## Requirements
+
+Arch Linux (the installer installs missing packages with pacman). On other distributions install the equivalents
+yourself and run `./install.sh --no-packages`; [the theme system](docs/THEMES.md) says what each package is for.
+
+- Required: niri, foot, swaybg, swaylock, swayidle, librsvg, python, libpulse, gtk4, gtk4-layer-shell, rust,
+  adobe-source-serif-fonts, inter-font, otf-monaspace, mako, fuzzel.
+- Suggested (`./install.sh --with-suggested` adds them): adw-gtk-theme, qt6ct, polkit-gnome, upower, networkmanager,
+  fcitx5, xdg-desktop-portal-gnome, xdg-desktop-portal-gtk, xwayland-satellite, wireplumber, brightnessctl,
+  noto-fonts-cjk, fastfetch.
+
+## Switch to Recto, or back
+
+You switch yourself; the script never does it for you:
 
 ```sh
-cd ~/Projects/recto
-./install.sh --dry-run    # 先看：缺哪些包、会改哪些文件（什么都不改）
-./install.sh              # 换成 Recto：编译外壳（几分钟），已有配置先改名备份，问一次就装
-./install.sh --uninstall  # 换回原来：删掉 Recto 的文件，放回备份的配置和 GNOME 设置
+git clone https://github.com/Cho155/recto.git
+cd recto
+./install.sh --dry-run    # look first: which packages are missing, which files would change (changes nothing)
+./install.sh              # switch to Recto: builds the shell (a few minutes), renames existing configs as backups, asks once, installs
+./install.sh --uninstall  # switch back: removes Recto's files, puts back the backed-up configs and GNOME settings
 ```
 
-两个方向都要**注销后重新登录**才完整生效。在原来的桌面里运行安装时，niri 会立刻换上 Recto 的配色和快捷键，但原来的状态栏、壁纸还在跑；重新登录后才是完整的 Recto（状态栏、壁纸、空闲锁屏）。已经在用 Recto 时再运行 `./install.sh`，就是更新到仓库里的最新版本。
+Either way, **log out and back in** for the change to be complete. When you install from your current desktop, niri
+takes Recto's colours and shortcuts at once, but the old bar and wallpaper keep running; after logging in again it is
+all Recto (bar, wallpaper, screen off when idle and lock before sleep). To update, `git pull` and run `./install.sh`
+again.
 
-- 备份的文件名是 `*.recto-backup-<时间>`，就在原来的位置旁边。
-- 自己的 niri 设置（显示器、键盘布局）写在 `~/.config/niri/local.kdl`，不会被安装覆盖。
-- 壁纸默认是 Hammershøi 的一幅油画；换图见 [design/plates/README.md](design/plates/README.md)。
+- Backups are named `*.recto-backup-<time>` and sit next to the originals.
+- Your own niri settings (outputs, keyboard layout) go in `~/.config/niri/local.kdl`, which the installer never
+  overwrites.
+- The default wallpaper is a painting by Hammershøi; to use another picture see
+  [design/plates/README.md](design/plates/README.md).
 
-详见 [主题系统](docs/THEMES.md)；在真机上试用，请按 [真机验证清单](docs/TESTING.md)。
+More in [the theme system](docs/THEMES.md); to try it on real hardware, follow [the checklist](docs/TESTING.md).
 
-## 快捷键
+## Shortcuts
 
-记不住时按 **Super+Shift+/**，屏幕上会列出常用的快捷键（niri 自带的列表，说明由 Recto 写）。Super 就是 Windows 键。状态栏右边的 Wi‑Fi、蓝牙、声音三个小标记也可以直接点。
+If you forget, press **Super+Shift+/**: the common shortcuts appear on screen (niri's own list, with Recto's
+descriptions). Super is the Windows key. The Wi‑Fi, Bluetooth and sound marks on the right of the bar can also be
+clicked.
 
-| 按键 | 作用 |
+| Keys | Action |
 | --- | --- |
-| Super+Enter 或 Super+T | 打开终端 |
-| Super+Space 或 Super+D | 搜索应用和操作 |
-| Super+A | 今日页：通知、主题（Paper · Ink · Auto）、专注模式 |
-| Super+N | Wi‑Fi：开关、附近的网络、连接 |
-| Super+B | 蓝牙：开关、已配对的设备、搜索新设备 |
-| Super+S | 声音：音量、静音、输出和输入设备 |
-| Super+Shift+T | 在 Paper 和 Ink 之间切换 |
-| Super+Alt+L | 锁屏 |
-| Super+Q | 关闭窗口 |
-| Super+O | 总览所有窗口 |
-| Super+← → 或 Super+H L | 切换到左边或右边的列 |
-| Super+↑ ↓ 或 Super+K J | 同一列里的上一个、下一个窗口 |
-| Super+Ctrl+方向键 | 移动列或窗口 |
-| Super+1 … 9 | 去第 1 到 9 个工作区 |
-| Super+Ctrl+1 … 9 | 把当前列移到第 1 到 9 个工作区 |
-| Super+Page Down / Page Up，或 Super+U / I | 下一个、上一个工作区 |
-| Super+R | 在几种预设宽度之间切换 |
-| Super+F / Super+Shift+F | 列占满宽度 / 窗口全屏 |
-| Super+- / Super+= | 列窄一点 / 宽一点 |
-| Super+C | 把当前列放到屏幕中间 |
-| Super+[ / ] | 把窗口并进左边或右边的列（已在同一列时则分出去） |
-| Super+W | 把一列里的窗口叠成标签 |
-| Super+V | 窗口浮动或回到平铺 |
-| PrtSc | 截取选区；Ctrl+PrtSc 截整屏，Alt+PrtSc 截当前窗口（存到 `~/Pictures/Screenshots`） |
-| Super+Shift+P | 关闭显示器 |
-| Super+Shift+E | 注销 |
+| Super+Enter or Super+T | Open a terminal |
+| Super+Space or Super+D | Search apps and actions |
+| Super+A | Today page: notifications, theme (Paper · Ink · Auto), focus mode |
+| Super+N | Wi‑Fi: on or off, nearby networks, connect |
+| Super+B | Bluetooth: on or off, paired devices, find new devices |
+| Super+S | Sound: volume, mute, output and input devices |
+| Super+Shift+T | Switch between Paper and Ink |
+| Super+Alt+L | Lock the screen |
+| Super+Q | Close the window |
+| Super+O | Overview of all windows |
+| Super+← → or Super+H L | Go to the column on the left or right |
+| Super+↑ ↓ or Super+K J | Previous or next window in the same column |
+| Super+Ctrl+arrow keys | Move the column or window |
+| Super+1 … 9 | Go to workspace 1 to 9 |
+| Super+Ctrl+1 … 9 | Move the current column to workspace 1 to 9 |
+| Super+Page Down / Page Up, or Super+U / I | Next or previous workspace |
+| Super+R | Cycle through preset widths |
+| Super+F / Super+Shift+F | Column at full width / window fullscreen |
+| Super+- / Super+= | Column narrower / wider |
+| Super+C | Center the current column |
+| Super+[ / ] | Move the window into the column on the left or right (out of it, if already in one column) |
+| Super+W | Stack a column's windows as tabs |
+| Super+V | Float the window, or tile it again |
+| PrtSc | Screenshot a selection; Ctrl+PrtSc the whole screen, Alt+PrtSc the current window (saved in `~/Pictures/Screenshots`) |
+| Super+Shift+P | Turn the displays off |
+| Super+Shift+E | Log out |
 
-## 文档
+## Documents (in Chinese)
 
-| 文档 | 内容 |
+| Document | Contents |
 | --- | --- |
-| [理念与想法](docs/VISION.md) | 为什么做、核心想法、明确不做什么 |
-| [设计语言](docs/DESIGN-LANGUAGE.md) | 配色、字体、形状、动效、图标、文案 |
-| [架构](docs/ARCHITECTURE.md) | 组件构成、技术选型、内存预算与测量方法 |
-| [路线图](docs/ROADMAP.md) | 分阶段计划与每阶段的完成标准 |
-| [决策记录](docs/DECISIONS.md) | 已做的决定与理由 |
-| [主题系统](docs/THEMES.md) | 令牌如何变成各应用配置、安装与卸载、如何切换 |
-| [真机验证清单](docs/TESTING.md) | 第一版在真机上要逐项试的内容，以及 `tools/collect-report` |
-| [交互规格](docs/INTERACTION.md) | 通知、提示、托盘、专注模式的行为（阶段 3） |
-| [设计令牌](design/tokens.toml) | 所有颜色、字号、圆角的唯一来源（草案） |
-| [样张](design/specimen/) | 桌面、状态栏、今日页、配色与字体的静态设计稿 |
+| [Vision](docs/VISION.md) | Why, the core ideas, what it will not do |
+| [Design language](docs/DESIGN-LANGUAGE.md) | Colour, type, shape, motion, icons, wording |
+| [Architecture](docs/ARCHITECTURE.md) | Components, technology choices, the memory budget and how it is measured |
+| [Roadmap](docs/ROADMAP.md) | The phases and what finishes each one |
+| [Decisions](docs/DECISIONS.md) | Decisions made, with reasons |
+| [Theme system](docs/THEMES.md) | How the tokens become each app's config, installing and removing, switching |
+| [Real-hardware checklist](docs/TESTING.md) | What to try item by item on real hardware for the first version, and `tools/collect-report` |
+| [Interaction](docs/INTERACTION.md) | How notifications, indicators, the tray and focus mode behave (phase 3) |
+| [Design tokens](design/tokens.toml) | The single source of every colour, size and radius (draft) |
+| [Specimens](design/specimen/) | Static designs of the desktop, bar, Today page, palette and type |
 
-## 许可证
+## License
 
-[MIT](LICENSE)。随项目分发的图版线稿各有自己的授权，列在 [design/plates/README.md](design/plates/README.md)。
+[MIT](LICENSE). The plates shipped with the project keep their own licences, listed in
+[design/plates/README.md](design/plates/README.md).

@@ -26,7 +26,7 @@
   - test 的登录信息不写进仓库、文档或记忆。
 - 可以在项目目录内编写文档、令牌、样张和源码。
 
-- **代码托管**（作者 2026-11-03）：GitHub 私有仓库 https://github.com/Cho155/recto（`origin`，分支 `master`）。提交邮箱是 GitHub 隐私邮箱，不要换回私人邮箱。提交随时可以做；推送到 GitHub 前先问作者，作者说了才推。gh 已在作者账户登录（`gh auth status`）。
+- **代码托管**（作者 2026-11-03；2026-11-14 起公开）：GitHub 公开仓库 https://github.com/Cho155/recto（`origin`，分支 `master`）。公开仓库里不放登录信息、私人邮箱和作者其他项目的内容。提交邮箱是 GitHub 隐私邮箱，不要换回私人邮箱。提交随时可以做；推送到 GitHub 前先问作者，作者说了才推。gh 已在作者账户登录（`gh auth status`）。
 
 ## 设计约定
 
